@@ -1,2 +1,2 @@
 export * from "./OntologyStore";
-export type { ObjectSetOrderBy, ListSubscriptionSnapshot } from "./types";
+export type { ObjectSetOrderBy, ListObserverSnapshot } from "./types";

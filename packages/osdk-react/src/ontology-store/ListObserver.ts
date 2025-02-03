@@ -1,28 +1,24 @@
 import type { ObjectOrInterfaceDefinition, Osdk } from "@osdk/api";
 import type { Client } from "@osdk/client";
-import type {
-    ListSubscriptionRequest,
-    ListSubscriptionSnapshot,
-    ObjectSet,
-    OntologyObservation,
-} from "./types";
+import type { ListObserverSnapshot, ListObserverRequest, ObjectSet, OntologyObservation } from "./types";
 import { modernToLegacyWhereClause } from "./modernToLegacyWhereClause";
 import { AsyncValue } from "./AsyncValue";
-import invariant from "tiny-invariant";
 
-export interface ListSubscription {
-    getSnapshot: () => ListSubscriptionSnapshot<ObjectOrInterfaceDefinition>;
+export interface ListObserver {
+    subscribe: (callback: () => void) => () => void;
+    getSnapshot: () => ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined;
     refresh: () => void;
     loadMore: (pageSize?: number) => void;
-    cancel: () => void;
     processObservation: (observation: OntologyObservation<ObjectOrInterfaceDefinition>) => void;
 }
 
-export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
+export function ListObserver<T extends ObjectOrInterfaceDefinition>(
     client: Client,
-    { type, $where, $orderBy, $pageSize, callback }: ListSubscriptionRequest<T>,
+    { type, $where, $orderBy, $pageSize }: ListObserverRequest<T>,
     broadcastObservation: (observation: OntologyObservation<T>) => void
-): ListSubscription {
+): ListObserver {
+    const subscribers = new Set<() => void>();
+
     const filter = $where ? modernToLegacyWhereClause($where, type) : undefined;
     const objectSet: ObjectSet<T> = { type, filter };
 
@@ -33,12 +29,28 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
           }>
         | undefined;
 
+    const notify = () => {
+        subscribers.forEach((callback) => callback());
+    };
+
+    const subscribe = (callback: () => void) => {
+        subscribers.add(callback);
+        return () => {
+            subscribers.delete(callback);
+        };
+    };
+
     // TODO: clean up this caching
-    let cache: { state: typeof state; snapshot: ListSubscriptionSnapshot<ObjectOrInterfaceDefinition> };
-    const getSnapshot = (): ListSubscriptionSnapshot<ObjectOrInterfaceDefinition> => {
-        invariant(state, "Called `getSnapshot` after subscription was canceled.");
+    let cache: {
+        state: typeof state;
+        snapshot: ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined;
+    } = {};
+    const getSnapshot = (): ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined => {
         if (state === cache.state) {
             return cache.snapshot;
+        }
+        if (!state) {
+            return undefined;
         }
         const snapshot = AsyncValue.mapValue(state, ({ data, nextPageToken }) => ({
             objects: data,
@@ -54,14 +66,17 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
             .fetchPage({ $orderBy, $pageSize });
         state = { type: "loading", promise };
 
-        callback(getSnapshot());
+        notify();
 
         try {
             const { data, nextPageToken } = await promise;
             if (promise !== AsyncValue.getPromise(state)) {
                 return;
             }
+
             state = { type: "loaded", value: { data, nextPageToken } };
+
+            notify();
             broadcastObservation({
                 type: "loaded-objects",
                 objectSet,
@@ -70,6 +85,7 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
             });
         } catch {
             state = undefined;
+            notify();
         }
     };
 
@@ -94,7 +110,7 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
             .then((page) => ({ data: [...data, ...page.data], nextPageToken: page.nextPageToken }));
         state = { type: "reloading", value: state.value, promise };
 
-        callback(getSnapshot());
+        notify();
 
         try {
             const { data, nextPageToken } = await promise;
@@ -103,7 +119,7 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
             }
             state = { type: "loaded", value: { data, nextPageToken } };
 
-            callback(getSnapshot());
+            notify();
             broadcastObservation({
                 type: "loaded-objects",
                 objectSet,
@@ -114,12 +130,8 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
         } catch {
             // TODO: advertise error via a callback passed to loadMore
             state = { type: "loaded", value: { data, nextPageToken } };
-            callback(getSnapshot());
+            notify();
         }
-    };
-
-    const cancel = () => {
-        state = undefined;
     };
 
     const processObservation = (observation: OntologyObservation<ObjectOrInterfaceDefinition>) => {
@@ -127,13 +139,11 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
         console.log(JSON.stringify(objectSet), `Processing observation...`, JSON.stringify(observation));
     };
 
-    void refresh();
-
     return {
+        subscribe,
         getSnapshot,
         refresh: () => void refresh(),
         loadMore: (pageSize) => void loadMore(pageSize),
-        cancel,
         processObservation,
     };
 }

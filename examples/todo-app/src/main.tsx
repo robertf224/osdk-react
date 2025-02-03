@@ -1,4 +1,4 @@
-import { StrictMode, Suspense } from "react";
+import { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { OsdkEnvironmentProvider } from "@bobbyfidz/osdk-react";
 import { createBrowserRouter } from "react-router";
@@ -27,12 +27,11 @@ const router = createBrowserRouter(
     { basename: import.meta.env.BASE_URL }
 );
 
+// TODO: re-add StrictMode
 createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <OsdkEnvironmentProvider client={client}>
-            <Suspense fallback="Loading...">
-                <RouterProvider router={router} />
-            </Suspense>
-        </OsdkEnvironmentProvider>
-    </StrictMode>
+    <OsdkEnvironmentProvider client={client}>
+        <Suspense fallback="Loading...">
+            <RouterProvider router={router} />
+        </Suspense>
+    </OsdkEnvironmentProvider>
 );

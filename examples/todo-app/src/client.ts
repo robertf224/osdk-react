@@ -19,15 +19,7 @@ function checkEnv(value: string | undefined, name: string): asserts value is str
 /**
  * Initialize the client to interact with the Ontology SDK
  */
-const auth = createPublicOauthClient(
-    clientId,
-    url,
-    redirectUrl,
-    true,
-    undefined,
-    window.location.toString(),
-    scopes
-);
+const auth = createPublicOauthClient(clientId, url, redirectUrl, true, "/login", "/", scopes);
 
 const client = createClient(url, $ontologyRid, auth);
 

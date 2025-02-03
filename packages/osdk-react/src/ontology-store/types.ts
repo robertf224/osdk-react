@@ -22,22 +22,22 @@ export interface ObjectReference {
 
 export type ObjectSetOrderBy<T extends ObjectOrInterfaceDefinition> = FetchPageArgs<T>["$orderBy"];
 
-export type ListSubscriptionSnapshot<T extends ObjectOrInterfaceDefinition> = AsyncValue<{
+export type ListObserverSnapshot<T extends ObjectOrInterfaceDefinition> = AsyncValue<{
     objects: Osdk<T>[];
     hasMore: boolean;
 }>;
 
 // TODO: support property selection
-export interface ListSubscriptionRequest<T extends ObjectOrInterfaceDefinition> {
+export interface ListObserverRequest<T extends ObjectOrInterfaceDefinition> {
     type: T;
     $where?: WhereClause<T>;
     $orderBy: ObjectSetOrderBy<T>;
     $pageSize?: number;
-    callback: (snapshot: ListSubscriptionSnapshot<T>) => void;
 }
 
-export interface ListSubscriptionResponse {
-    getSnapshot: () => ListSubscriptionSnapshot<ObjectOrInterfaceDefinition>;
+export interface ListObserverResponse {
+    subscribe: (callback: () => void) => () => void;
+    getSnapshot: () => ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined;
     loadMore: (pageSize?: number) => void;
     refresh: () => void;
     dispose: () => void;

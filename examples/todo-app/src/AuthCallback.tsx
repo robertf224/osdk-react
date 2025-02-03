@@ -10,11 +10,15 @@ function AuthCallback() {
     const [error, setError] = useState<string | undefined>(undefined);
     const navigate = useNavigate();
 
+    console.log("token", auth.getTokenOrUndefined());
+
     // This effect conflicts with React 18 strict mode in development
     // https://react.dev/learn/synchronizing-with-effects#how-to-handle-the-effect-firing-twice-in-development
     useEffect(() => {
         auth.signIn()
-            .then(() => navigate("/", { replace: true }))
+            .then(() => {
+                navigate("/", { replace: true });
+            })
             .catch((e: unknown) => setError((e as Error).message ?? e));
     }, [navigate]);
     return <div>{error != null ? error : "Authenticating…"}</div>;

@@ -4,12 +4,6 @@ import type { ObjectOrInterfaceDefinition, Osdk, WhereClause } from "@osdk/api";
 import { ObjectSetOrderBy } from "./ontology-store";
 import { useOsdkContext } from "./OsdkContext";
 import React from "react";
-import { ListSubscriptionResponse } from "./ontology-store/types";
-
-const defaultSnapshot = {
-    type: "loading",
-    promise: Promise.resolve(),
-} as const;
 
 export interface UseList<T extends ObjectOrInterfaceDefinition> {
     objects: Osdk<T>[];
@@ -33,32 +27,17 @@ export function useList<T extends ObjectOrInterfaceDefinition>(
 ): UseList<T> {
     const { store } = useOsdkContext();
 
-    const subscription = React.useRef<ListSubscriptionResponse | null>(null);
+    // TODO: handle changing props
+    const [observer] = React.useState(() => store.list({ type, $where, $orderBy, $pageSize }));
+    React.useEffect(() => {
+        return observer.dispose;
+    }, []);
+    let snapshot = React.useSyncExternalStore(observer.subscribe, observer.getSnapshot);
 
-    const subscribe = React.useCallback(
-        (callback: () => void) => {
-            console.log("SUBSCRIBE");
-            subscription.current = store.requestListSubscription({
-                type,
-                $where,
-                $orderBy,
-                $pageSize,
-                callback,
-            });
-
-            return () => {
-                subscription.current?.dispose();
-                subscription.current = null;
-            };
-        },
-        [store, type, $where, $orderBy, $pageSize]
-    );
-
-    const getSnapshot = React.useCallback(() => {
-        return subscription.current?.getSnapshot() ?? defaultSnapshot;
-    }, [subscription]);
-
-    const snapshot = React.useSyncExternalStore(subscribe, getSnapshot);
+    if (!snapshot) {
+        observer.refresh();
+        snapshot = observer.getSnapshot()!;
+    }
 
     if (snapshot.type === "loading") {
         // Suspense!
@@ -73,7 +52,7 @@ export function useList<T extends ObjectOrInterfaceDefinition>(
         hasMore,
         objects,
         isLoadingMore: snapshot.type === "reloading",
-        loadMore: (pageSize?: number) => subscription.current?.loadMore(pageSize),
-        refresh: () => subscription.current?.refresh(),
+        loadMore: observer.loadMore,
+        refresh: observer.refresh,
     };
 }

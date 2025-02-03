@@ -1,38 +1,44 @@
 import type { ObjectOrInterfaceDefinition, ActionDefinition } from "@osdk/api";
 import type { Client } from "@osdk/client";
-import type { ListSubscriptionRequest, ListSubscriptionResponse } from "./types";
-import { ListSubscription } from "./ListSubscription";
+import type { ListObserverRequest, ListObserverResponse } from "./types";
+import { ListObserver } from "./ListObserver";
 
 export interface OntologyStore {
-    requestListSubscription<T extends ObjectOrInterfaceDefinition>(
-        request: ListSubscriptionRequest<T>
-    ): ListSubscriptionResponse;
+    list<T extends ObjectOrInterfaceDefinition>(request: ListObserverRequest<T>): ListObserverResponse;
     applyAction<T extends ActionDefinition>(type: T): Promise<void>;
 }
 
 export function OntologyStore(client: Client): OntologyStore {
-    const listSubscriptions = new Set<ListSubscription>();
+    const listObservers = new Set<ListObserver>();
 
-    const requestListSubscription = <T extends ObjectOrInterfaceDefinition>(
-        request: ListSubscriptionRequest<T>
-    ): ListSubscriptionResponse => {
-        const subscription = ListSubscription(client, request, (observation) => {
-            listSubscriptions.forEach((s) => s.processObservation(observation));
+    const list = <T extends ObjectOrInterfaceDefinition>(
+        request: ListObserverRequest<T>
+    ): ListObserverResponse => {
+        let canceled = false;
+        // TODO: filter out our own observations
+        const observer = ListObserver(client, request, (observation) => {
+            if (canceled) {
+                return;
+            }
+            listObservers.forEach((observer) => {
+                observer.processObservation(observation);
+            });
         });
-        listSubscriptions.add(subscription);
+        listObservers.add(observer);
         return {
-            getSnapshot: subscription.getSnapshot,
-            loadMore: subscription.loadMore,
-            refresh: subscription.refresh,
+            subscribe: observer.subscribe,
+            getSnapshot: observer.getSnapshot,
+            loadMore: observer.loadMore,
+            refresh: observer.refresh,
             dispose: () => {
-                subscription.cancel();
-                listSubscriptions.delete(subscription);
+                canceled = true;
+                listObservers.delete(observer);
             },
         };
     };
 
     return {
-        requestListSubscription,
+        list,
         applyAction: () => {
             throw new Error("Not implemented.");
         },
