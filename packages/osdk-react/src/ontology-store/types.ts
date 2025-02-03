@@ -1,7 +1,12 @@
-import type { FetchPageArgs, ObjectOrInterfaceDefinition, Osdk, WhereClause } from "@osdk/api";
+import type {
+    FetchPageArgs,
+    ObjectOrInterfaceDefinition,
+    Osdk,
+    PrimaryKeyType,
+    WhereClause,
+} from "@osdk/api";
 import { SearchJsonQueryV2 } from "@osdk/internal.foundry.core";
-
-export type AsyncValue<T> = { type: "loading"; value: Promise<T> };
+import { AsyncValue } from "./AsyncValue";
 
 // Real Object Sets can obviously be more complex than this, but this is all we allow for now partly
 // because it's what OSDK actually lets us get, partly because it will keep the implementation scoped down.
@@ -17,10 +22,10 @@ export interface ObjectReference {
 
 export type ObjectSetOrderBy<T extends ObjectOrInterfaceDefinition> = FetchPageArgs<T>["$orderBy"];
 
-export interface ListSubscriptionSnapshot<T extends ObjectOrInterfaceDefinition> {
-    data: Promise<{ objects: Osdk<T>[]; hasMore: boolean }>;
-    isLoadingMore: boolean;
-}
+export type ListSubscriptionSnapshot<T extends ObjectOrInterfaceDefinition> = AsyncValue<{
+    objects: Osdk<T>[];
+    hasMore: boolean;
+}>;
 
 // TODO: support property selection
 export interface ListSubscriptionRequest<T extends ObjectOrInterfaceDefinition> {
@@ -32,7 +37,8 @@ export interface ListSubscriptionRequest<T extends ObjectOrInterfaceDefinition> 
 }
 
 export interface ListSubscriptionResponse {
-    loadMore: (pageSize: number) => void;
+    getSnapshot: () => ListSubscriptionSnapshot<ObjectOrInterfaceDefinition>;
+    loadMore: (pageSize?: number) => void;
     refresh: () => void;
     dispose: () => void;
 }
@@ -41,16 +47,10 @@ export interface ListSubscriptionResponse {
 // TODO: aggregations, queries
 
 // TODO: maybe advertise that we’ve learned an object set is completely known to possibly complete some other ones
-export interface ObjectSetChange<T extends ObjectOrInterfaceDefinition> {
+export type OntologyObservation<T extends ObjectOrInterfaceDefinition> = {
+    type: "loaded-objects";
     objectSet: ObjectSet<T>;
-    updated: {
-        // TODO: possibly include whether we know an object to have been created
-        objects: Osdk<T>[];
-        listMetadata: {
-            orderBy: ObjectSetOrderBy<T>;
-            afterPrimaryKey?: string | number | boolean;
-        };
-    };
-    // TODO: possibly include whether we know an object to have been deleted
-    removedObjectIds: ObjectReference[];
-}
+    objects: Osdk<T>[];
+    orderBy: ObjectSetOrderBy<T>;
+    afterPrimaryKey?: PrimaryKeyType<T>;
+}; // TODO: Action updates, OSW changes

@@ -1,134 +1,132 @@
 import type { ObjectOrInterfaceDefinition, Osdk } from "@osdk/api";
 import type { Client } from "@osdk/client";
-import type { ListSubscriptionRequest, ObjectSet, ObjectSetChange } from "./types";
+import type {
+    ListSubscriptionRequest,
+    ListSubscriptionSnapshot,
+    ObjectSet,
+    OntologyObservation,
+} from "./types";
 import { modernToLegacyWhereClause } from "./modernToLegacyWhereClause";
+import { AsyncValue } from "./AsyncValue";
+import invariant from "tiny-invariant";
 
 export interface ListSubscription {
+    getSnapshot: () => ListSubscriptionSnapshot<ObjectOrInterfaceDefinition>;
     refresh: () => void;
-    loadMore: (pageSize: number) => void;
+    loadMore: (pageSize?: number) => void;
     cancel: () => void;
-    processChange: (change: ObjectSetChange<ObjectOrInterfaceDefinition>) => void;
+    processObservation: (observation: OntologyObservation<ObjectOrInterfaceDefinition>) => void;
 }
 
 export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
     client: Client,
     { type, $where, $orderBy, $pageSize, callback }: ListSubscriptionRequest<T>,
-    broadcastChange: (change: ObjectSetChange<T>) => void
+    broadcastObservation: (observation: OntologyObservation<T>) => void
 ): ListSubscription {
     const filter = $where ? modernToLegacyWhereClause($where, type) : undefined;
     const objectSet: ObjectSet<T> = { type, filter };
 
-    const state: {
-        pendingOperation?: Promise<unknown>;
-        objects?: Osdk<T>[];
-        nextPageToken?: string;
-    } = {};
+    let state:
+        | AsyncValue<{
+              data: Osdk<T>[];
+              nextPageToken?: string;
+          }>
+        | undefined;
+
+    const getSnapshot = (): ListSubscriptionSnapshot<ObjectOrInterfaceDefinition> => {
+        invariant(state, "Called `getSnapshot` after subscription was canceled.");
+        return AsyncValue.mapValue(state, ({ data, nextPageToken }) => ({
+            objects: data,
+            hasMore: nextPageToken !== undefined,
+        }));
+    };
 
     const refresh = async () => {
         const promise = client(type)
             .where($where ?? {})
             .fetchPage({ $orderBy, $pageSize });
-        state.pendingOperation = promise;
+        state = { type: "loading", promise };
 
-        callback({
-            data: promise.then((page) => ({ objects: page.data, hasMore: page.nextPageToken !== undefined })),
-            isLoadingMore: false,
-        });
+        callback(getSnapshot());
 
         try {
             const { data, nextPageToken } = await promise;
-            if (promise !== state.pendingOperation) {
+            if (promise !== AsyncValue.getPromise(state)) {
                 return;
             }
-            state.pendingOperation = undefined;
-            state.objects = data;
-            state.nextPageToken = nextPageToken;
-            broadcastChange({
+            state = { type: "loaded", value: { data, nextPageToken } };
+            broadcastObservation({
+                type: "loaded-objects",
                 objectSet,
-                updated: {
-                    objects: data,
-                    listMetadata: {
-                        orderBy: $orderBy,
-                    },
-                },
+                objects: data,
+                orderBy: $orderBy,
             });
         } catch {
-            state.pendingOperation = undefined;
+            state = undefined;
         }
     };
 
-    const loadMore = async (pageSize: number) => {
-        if (state.pendingOperation) {
-            console.warn("Called `loadMore` while there was a pending operation.");
-            return;
-        }
-        const loadedObjects = state.objects;
-        if (!loadedObjects) {
+    const loadMore = async (pageSize?: number) => {
+        if (!state || state.type === "error") {
             console.warn("Called `loadMore` before an initial load.");
             return;
         }
-        if (!state.nextPageToken) {
+        if (state.type === "loading" || state.type === "reloading") {
+            console.warn("Called `loadMore` while there was a pending operation.");
+            return;
+        }
+        if (!state.value.nextPageToken) {
             console.warn("Called `loadMore` on an exhausted list.");
             return;
         }
 
+        const { data, nextPageToken } = state.value;
         const promise = client(type)
             .where($where ?? {})
-            .fetchPage({ $orderBy, $pageSize: pageSize, $nextPageToken: state.nextPageToken });
-        state.pendingOperation = promise;
+            .fetchPage({ $orderBy, $pageSize: pageSize, $nextPageToken: nextPageToken })
+            .then((page) => ({ data: [...data, ...page.data], nextPageToken: page.nextPageToken }));
+        state = { type: "reloading", value: state.value, promise };
 
-        const snapshotData = promise.then((page) => ({
-            objects: [...loadedObjects, ...page.data],
-            hasMore: page.nextPageToken !== undefined,
-        }));
-        callback({
-            data: snapshotData,
-            isLoadingMore: true,
-        });
+        callback(getSnapshot());
 
         try {
             const { data, nextPageToken } = await promise;
-            if (promise !== state.pendingOperation) {
+            if (promise !== AsyncValue.getPromise(state)) {
                 return;
             }
-            state.pendingOperation = undefined;
-            state.objects = [...loadedObjects, ...data];
-            state.nextPageToken = nextPageToken;
+            state = { type: "loaded", value: { data, nextPageToken } };
 
-            callback({
-                data: snapshotData,
-                isLoadingMore: false,
-            });
-            broadcastChange({
+            callback(getSnapshot());
+            broadcastObservation({
+                type: "loaded-objects",
                 objectSet,
-                updated: {
-                    objects: data,
-                    listMetadata: {
-                        orderBy: $orderBy,
-                        afterPrimaryKey: loadedObjects[loadedObjects.length - 1]?.$primaryKey,
-                    },
-                },
+                objects: data,
+                orderBy: $orderBy,
+                afterPrimaryKey: data[data.length - 1]?.$primaryKey,
             });
         } catch {
-            state.pendingOperation = undefined;
+            // TODO: advertise error via a callback passed to loadMore
+            state = { type: "loaded", value: { data, nextPageToken } };
+            callback(getSnapshot());
         }
     };
 
     const cancel = () => {
-        state.pendingOperation = undefined;
+        state = undefined;
     };
 
-    const processChange = (change: ObjectSetChange<ObjectOrInterfaceDefinition>) => {
-        // TODO: process changes!
-        console.log(JSON.stringify(objectSet), `Processing change...`, JSON.stringify(change));
+    const processObservation = (observation: OntologyObservation<ObjectOrInterfaceDefinition>) => {
+        // TODO: process observations!
+        console.log(JSON.stringify(objectSet), `Processing observation...`, JSON.stringify(observation));
     };
 
     void refresh();
 
     return {
+        getSnapshot,
         refresh: () => void refresh(),
         loadMore: (pageSize) => void loadMore(pageSize),
         cancel,
-        processChange,
+        processObservation,
     };
 }

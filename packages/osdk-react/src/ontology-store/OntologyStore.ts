@@ -16,8 +16,8 @@ export function OntologyStore(client: Client): OntologyStore {
     const requestListSubscription = <T extends ObjectOrInterfaceDefinition>(
         request: ListSubscriptionRequest<T>
     ): ListSubscriptionResponse => {
-        const subscription = ListSubscription(client, request, (change) => {
-            listSubscriptions.forEach((s) => s.processChange(change));
+        const subscription = ListSubscription(client, request, (observation) => {
+            listSubscriptions.forEach((s) => s.processObservation(observation));
         });
         listSubscriptions.add(subscription);
         return {
