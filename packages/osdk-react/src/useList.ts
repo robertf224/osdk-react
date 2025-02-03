@@ -6,6 +6,11 @@ import { useOsdkContext } from "./OsdkContext";
 import React from "react";
 import { ListSubscriptionResponse } from "./ontology-store/types";
 
+const defaultSnapshot = {
+    type: "loading",
+    promise: Promise.resolve(),
+} as const;
+
 export interface UseList<T extends ObjectOrInterfaceDefinition> {
     objects: Osdk<T>[];
     hasMore: boolean;
@@ -16,8 +21,11 @@ export interface UseList<T extends ObjectOrInterfaceDefinition> {
 
 export function useList<T extends ObjectOrInterfaceDefinition>(
     type: ObjectOrInterfaceDefinition,
-    where: WhereClause<T>,
-    args: {
+    {
+        $where,
+        $orderBy,
+        $pageSize,
+    }: {
         $where?: WhereClause<T>;
         $orderBy: ObjectSetOrderBy<T>;
         $pageSize?: number;
@@ -29,10 +37,12 @@ export function useList<T extends ObjectOrInterfaceDefinition>(
 
     const subscribe = React.useCallback(
         (callback: () => void) => {
+            console.log("SUBSCRIBE");
             subscription.current = store.requestListSubscription({
                 type,
-                $where: where,
-                ...args,
+                $where,
+                $orderBy,
+                $pageSize,
                 callback,
             });
 
@@ -41,17 +51,12 @@ export function useList<T extends ObjectOrInterfaceDefinition>(
                 subscription.current = null;
             };
         },
-        [store, type, where, args]
+        [store, type, $where, $orderBy, $pageSize]
     );
 
     const getSnapshot = React.useCallback(() => {
-        return (
-            subscription.current?.getSnapshot() ?? {
-                type: "loading",
-                promise: Promise.resolve(),
-            }
-        );
-    }, []);
+        return subscription.current?.getSnapshot() ?? defaultSnapshot;
+    }, [subscription]);
 
     const snapshot = React.useSyncExternalStore(subscribe, getSnapshot);
 

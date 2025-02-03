@@ -2,6 +2,12 @@
     "name": "@bobbyfidz/osdk-react",
     "version": "0.0.0",
     "type": "module",
+    "exports": {
+        ".": {
+            "types": "./lib/index.d.ts",
+            "default": "./lib/index.js"
+        }
+    },
     "scripts": {
         "build": "tsc",
         "lint": "eslint",

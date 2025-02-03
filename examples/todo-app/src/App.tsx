@@ -1,20 +1,21 @@
-import { useState } from "react";
-import { createTask, Task } from "@gtd/sdk";
-import { createClient, Osdk, ObjectSet, ObjectTypeDefinition } from "@osdk/client";
+import { Task } from "@gtd/sdk";
+import { useList } from "@bobbyfidz/osdk-react";
+import { Osdk } from "@osdk/client";
+
+const orderBy = { createdAt: "desc" } as const;
 
 function App() {
-    const [count, setCount] = useState(0);
+    const { objects } = useList(Task, { $orderBy: orderBy });
+    const tasks = objects as Osdk<Task>[];
 
     return (
         <>
-            <h1 className="text-2xl">Vite + React</h1>
-            <div className="rounded-4xl border shadow-2xl">
-                <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
+            <h1 className="text-2xl">My tasks</h1>
+            <div className="flex flex-col gap-2">
+                {tasks.map((task) => (
+                    <div>{task.title}</div>
+                ))}
             </div>
-            <p className="text-xl">Click on the Vite and React logos to learn more</p>
         </>
     );
 }

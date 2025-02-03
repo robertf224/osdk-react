@@ -1,3 +1,4 @@
+export * from "./OsdkEnvironmentProvider";
 export * from "./useList";
 
 // useObjectSet(type, where clause, { } [{ type: "list", orderBy: ... }, { type: "aggregation", groupBy: "" }], { live: true });

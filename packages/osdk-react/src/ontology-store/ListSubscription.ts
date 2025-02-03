@@ -33,12 +33,19 @@ export function ListSubscription<T extends ObjectOrInterfaceDefinition>(
           }>
         | undefined;
 
+    // TODO: clean up this caching
+    let cache: { state: typeof state; snapshot: ListSubscriptionSnapshot<ObjectOrInterfaceDefinition> };
     const getSnapshot = (): ListSubscriptionSnapshot<ObjectOrInterfaceDefinition> => {
         invariant(state, "Called `getSnapshot` after subscription was canceled.");
-        return AsyncValue.mapValue(state, ({ data, nextPageToken }) => ({
+        if (state === cache.state) {
+            return cache.snapshot;
+        }
+        const snapshot = AsyncValue.mapValue(state, ({ data, nextPageToken }) => ({
             objects: data,
             hasMore: nextPageToken !== undefined,
         }));
+        cache = { state, snapshot };
+        return snapshot;
     };
 
     const refresh = async () => {

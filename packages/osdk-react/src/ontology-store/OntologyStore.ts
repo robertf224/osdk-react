@@ -21,6 +21,7 @@ export function OntologyStore(client: Client): OntologyStore {
         });
         listSubscriptions.add(subscription);
         return {
+            getSnapshot: subscription.getSnapshot,
             loadMore: subscription.loadMore,
             refresh: subscription.refresh,
             dispose: () => {
