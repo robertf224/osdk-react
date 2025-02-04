@@ -46,21 +46,40 @@ export interface ListObserverResponse<T extends ObjectOrInterfaceDefinition> {
     refresh: (pageSize?: number) => void;
 }
 
-// TODO: live object sets
 // TODO: aggregations, queries
 
+// TODO: try to coalesce w/ AsyncValue
+export type LiveSetObserverSnapsot = { status: "connecting" | "connected" | "error"; error?: Error };
+
+export interface LiveSetObserverRequest<T extends ObjectOrInterfaceDefinition> {
+    type: T;
+    where?: WhereClause<T>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export interface LiveSetObserverResponse<T extends ObjectOrInterfaceDefinition> {
+    subscribe: (callback: () => void) => () => void;
+    getSnapshot: () => LiveSetObserverSnapsot | undefined;
+    refresh: () => void;
+}
+
 // TODO: maybe advertise that we’ve learned an object set is completely known to possibly complete some other ones
+
+export interface LoadedObjectsObservation<T extends ObjectOrInterfaceDefinition> {
+    type: "loaded-objects";
+    objectSet: ObjectSet<T>;
+    objects: Osdk<T>[];
+    orderBy: ObjectSetOrderBy<T>;
+    afterPrimaryKey?: PrimaryKeyType<T>;
+}
+
+export interface ObjectSetChangeObservation<T extends ObjectOrInterfaceDefinition> {
+    type: "object-set-change";
+    objectSet: ObjectSet<T>;
+    change: "added-or-updated" | "removed";
+    object: Osdk<T>;
+}
+
 export type OntologyObservation<T extends ObjectOrInterfaceDefinition> =
-    | {
-          type: "loaded-objects";
-          objectSet: ObjectSet<T>;
-          objects: Osdk<T>[];
-          orderBy: ObjectSetOrderBy<T>;
-          afterPrimaryKey?: PrimaryKeyType<T>;
-      }
-    | {
-          type: "object-set-changes";
-          objectSet: ObjectSet<T>;
-          change: "added-or-updated" | "removed";
-          object: Osdk<T>;
-      }; // TODO: Action updates
+    | LoadedObjectsObservation<T>
+    | ObjectSetChangeObservation<T>;

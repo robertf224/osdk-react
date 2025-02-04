@@ -2,6 +2,7 @@ import type { ObjectOrInterfaceDefinition, Osdk, ObjectSet as ObjectSetClient } 
 import memoize from "memoize-one";
 import type { ListObserverSnapshot, ObjectSet, OntologyObservation, ObjectSetOrderBy } from "./types";
 import { AsyncValue } from "./AsyncValue";
+import { getListInsertionIndex } from "./getListInsertionIndex";
 
 export interface ListObserver<T extends ObjectOrInterfaceDefinition> {
     subscribe: (callback: () => void) => () => void;
@@ -32,7 +33,9 @@ export function ListObserver<T extends ObjectOrInterfaceDefinition>(
         };
     };
     const notifySubscribers = () => {
-        subscribers.forEach((callback) => callback());
+        subscribers.forEach((callback) => {
+            callback();
+        });
     };
 
     const getSnapshotFromState = memoize((s: typeof state) =>
@@ -121,8 +124,50 @@ export function ListObserver<T extends ObjectOrInterfaceDefinition>(
     };
 
     const processObservation = (observation: OntologyObservation<ObjectOrInterfaceDefinition>) => {
-        // TODO: process observations!
-        console.log(JSON.stringify(objectSet), `Processing observation...`, JSON.stringify(observation));
+        if (
+            observation.type === "object-set-change" &&
+            state &&
+            (state.type === "loaded" || state.type === "reloading")
+        ) {
+            // TODO: do more of a superset thing here
+            if (
+                !(
+                    observation.objectSet.type.apiName === objectSet.type.apiName &&
+                    JSON.stringify(observation.objectSet.filter) === JSON.stringify(objectSet.filter)
+                )
+            ) {
+                return;
+            }
+
+            if (observation.change === "added-or-updated") {
+                const index = state.value.data.findIndex(
+                    (object) => object.$primaryKey === observation.object.$primaryKey
+                );
+                if (index !== -1) {
+                    state.value.data.splice(index, 1);
+                }
+                const insertionIndex = getListInsertionIndex({
+                    orderBy,
+                    data: state.value.data,
+                    hasMore: state.value.nextPageToken !== undefined,
+                    object: observation.object as Osdk<T>,
+                });
+                if (insertionIndex !== undefined) {
+                    state.value.data.splice(insertionIndex, 0, observation.object as Osdk<T>);
+                }
+                state = { ...state };
+                notifySubscribers();
+            } else if (observation.change === "removed") {
+                const index = state.value.data.findIndex(
+                    (object) => object.$primaryKey === observation.object.$primaryKey
+                );
+                if (index !== -1) {
+                    state.value.data.splice(index, 1);
+                    state = { ...state };
+                    notifySubscribers();
+                }
+            }
+        }
     };
 
     return {
