@@ -16,13 +16,6 @@ function mapValue<T, U>(asyncValue: AsyncValue<T>, map: (value: T) => U): AsyncV
     }
 }
 
-function getPromise<T>(asyncValue: AsyncValue<T>): Promise<T> | undefined {
-    if (asyncValue.type === "loading" || asyncValue.type === "reloading") {
-        return asyncValue.promise;
-    }
-}
-
 export const AsyncValue = {
     mapValue,
-    getPromise,
 };

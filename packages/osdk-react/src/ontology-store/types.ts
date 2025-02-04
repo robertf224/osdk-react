@@ -15,6 +15,11 @@ export type ObjectSet<T extends ObjectOrInterfaceDefinition> = {
     filter?: SearchJsonQueryV2;
 };
 
+export interface ObjectSetReference {
+    type: string;
+    filter?: SearchJsonQueryV2;
+}
+
 export interface ObjectReference {
     objectType: string;
     primaryKey: string | number;
@@ -30,27 +35,32 @@ export type ListObserverSnapshot<T extends ObjectOrInterfaceDefinition> = AsyncV
 // TODO: support property selection
 export interface ListObserverRequest<T extends ObjectOrInterfaceDefinition> {
     type: T;
-    $where?: WhereClause<T>;
-    $orderBy: ObjectSetOrderBy<T>;
-    $pageSize?: number;
+    where?: WhereClause<T>;
+    orderBy: ObjectSetOrderBy<T>;
 }
 
-export interface ListObserverResponse {
+export interface ListObserverResponse<T extends ObjectOrInterfaceDefinition> {
     subscribe: (callback: () => void) => () => void;
-    getSnapshot: () => ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined;
+    getSnapshot: () => ListObserverSnapshot<T> | undefined;
     loadMore: (pageSize?: number) => void;
-    refresh: () => void;
-    dispose: () => void;
+    refresh: (pageSize?: number) => void;
 }
 
 // TODO: live object sets
 // TODO: aggregations, queries
 
 // TODO: maybe advertise that we’ve learned an object set is completely known to possibly complete some other ones
-export type OntologyObservation<T extends ObjectOrInterfaceDefinition> = {
-    type: "loaded-objects";
-    objectSet: ObjectSet<T>;
-    objects: Osdk<T>[];
-    orderBy: ObjectSetOrderBy<T>;
-    afterPrimaryKey?: PrimaryKeyType<T>;
-}; // TODO: Action updates, OSW changes
+export type OntologyObservation<T extends ObjectOrInterfaceDefinition> =
+    | {
+          type: "loaded-objects";
+          objectSet: ObjectSet<T>;
+          objects: Osdk<T>[];
+          orderBy: ObjectSetOrderBy<T>;
+          afterPrimaryKey?: PrimaryKeyType<T>;
+      }
+    | {
+          type: "object-set-changes";
+          objectSet: ObjectSet<T>;
+          change: "added-or-updated" | "removed";
+          object: Osdk<T>;
+      }; // TODO: Action updates

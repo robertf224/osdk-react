@@ -1,27 +1,22 @@
-import type { ObjectOrInterfaceDefinition, Osdk } from "@osdk/api";
-import type { Client } from "@osdk/client";
-import type { ListObserverSnapshot, ListObserverRequest, ObjectSet, OntologyObservation } from "./types";
-import { modernToLegacyWhereClause } from "./modernToLegacyWhereClause";
+import type { ObjectOrInterfaceDefinition, Osdk, ObjectSet as ObjectSetClient } from "@osdk/api";
+import memoize from "memoize-one";
+import type { ListObserverSnapshot, ObjectSet, OntologyObservation, ObjectSetOrderBy } from "./types";
 import { AsyncValue } from "./AsyncValue";
 
-export interface ListObserver {
+export interface ListObserver<T extends ObjectOrInterfaceDefinition> {
     subscribe: (callback: () => void) => () => void;
-    getSnapshot: () => ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined;
-    refresh: () => void;
+    getSnapshot: () => ListObserverSnapshot<T> | undefined;
+    refresh: (pageSize?: number) => void;
     loadMore: (pageSize?: number) => void;
     processObservation: (observation: OntologyObservation<ObjectOrInterfaceDefinition>) => void;
 }
 
 export function ListObserver<T extends ObjectOrInterfaceDefinition>(
-    client: Client,
-    { type, $where, $orderBy, $pageSize }: ListObserverRequest<T>,
+    client: ObjectSetClient<T>,
+    objectSet: ObjectSet<T>,
+    orderBy: ObjectSetOrderBy<T>,
     broadcastObservation: (observation: OntologyObservation<T>) => void
-): ListObserver {
-    const subscribers = new Set<() => void>();
-
-    const filter = $where ? modernToLegacyWhereClause($where, type) : undefined;
-    const objectSet: ObjectSet<T> = { type, filter };
-
+): ListObserver<T> {
     let state:
         | AsyncValue<{
               data: Osdk<T>[];
@@ -29,63 +24,54 @@ export function ListObserver<T extends ObjectOrInterfaceDefinition>(
           }>
         | undefined;
 
-    const notify = () => {
-        subscribers.forEach((callback) => callback());
-    };
-
+    const subscribers = new Set<() => void>();
     const subscribe = (callback: () => void) => {
         subscribers.add(callback);
         return () => {
             subscribers.delete(callback);
         };
     };
-
-    // TODO: clean up this caching
-    let cache: {
-        state: typeof state;
-        snapshot: ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined;
-    } = {};
-    const getSnapshot = (): ListObserverSnapshot<ObjectOrInterfaceDefinition> | undefined => {
-        if (state === cache.state) {
-            return cache.snapshot;
-        }
-        if (!state) {
-            return undefined;
-        }
-        const snapshot = AsyncValue.mapValue(state, ({ data, nextPageToken }) => ({
-            objects: data,
-            hasMore: nextPageToken !== undefined,
-        }));
-        cache = { state, snapshot };
-        return snapshot;
+    const notifySubscribers = () => {
+        subscribers.forEach((callback) => callback());
     };
 
-    const refresh = async () => {
-        const promise = client(type)
-            .where($where ?? {})
-            .fetchPage({ $orderBy, $pageSize });
-        state = { type: "loading", promise };
+    const getSnapshotFromState = memoize((s: typeof state) =>
+        s
+            ? AsyncValue.mapValue(s, ({ data, nextPageToken }) => ({
+                  objects: data,
+                  hasMore: nextPageToken !== undefined,
+              }))
+            : undefined
+    );
+    const getSnapshot = (): ListObserverSnapshot<T> | undefined => {
+        return getSnapshotFromState(state);
+    };
 
-        notify();
+    const refresh = async (pageSize?: number) => {
+        const promise = client.fetchPage({ $orderBy: orderBy, $pageSize: pageSize });
+        state = { type: "loading", promise };
+        const loadingState = state;
+
+        notifySubscribers();
 
         try {
             const { data, nextPageToken } = await promise;
-            if (promise !== AsyncValue.getPromise(state)) {
+            if (loadingState !== state) {
                 return;
             }
 
             state = { type: "loaded", value: { data, nextPageToken } };
 
-            notify();
+            notifySubscribers();
             broadcastObservation({
                 type: "loaded-objects",
                 objectSet,
                 objects: data,
-                orderBy: $orderBy,
+                orderBy,
             });
-        } catch {
-            state = undefined;
-            notify();
+        } catch (error) {
+            state = { type: "error", error: error as Error };
+            notifySubscribers();
         }
     };
 
@@ -104,33 +90,33 @@ export function ListObserver<T extends ObjectOrInterfaceDefinition>(
         }
 
         const { data, nextPageToken } = state.value;
-        const promise = client(type)
-            .where($where ?? {})
-            .fetchPage({ $orderBy, $pageSize: pageSize, $nextPageToken: nextPageToken })
+        const promise = client
+            .fetchPage({ $orderBy: orderBy, $pageSize: pageSize, $nextPageToken: nextPageToken })
             .then((page) => ({ data: [...data, ...page.data], nextPageToken: page.nextPageToken }));
         state = { type: "reloading", value: state.value, promise };
+        const loadingState = state;
 
-        notify();
+        notifySubscribers();
 
         try {
             const { data, nextPageToken } = await promise;
-            if (promise !== AsyncValue.getPromise(state)) {
+            if (loadingState !== state) {
                 return;
             }
             state = { type: "loaded", value: { data, nextPageToken } };
 
-            notify();
+            notifySubscribers();
             broadcastObservation({
                 type: "loaded-objects",
                 objectSet,
                 objects: data,
-                orderBy: $orderBy,
+                orderBy,
                 afterPrimaryKey: data[data.length - 1]?.$primaryKey,
             });
         } catch {
             // TODO: advertise error via a callback passed to loadMore
             state = { type: "loaded", value: { data, nextPageToken } };
-            notify();
+            notifySubscribers();
         }
     };
 

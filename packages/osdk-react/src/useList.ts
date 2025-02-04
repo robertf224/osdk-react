@@ -15,32 +15,24 @@ export interface UseList<T extends ObjectOrInterfaceDefinition> {
 
 export function useList<T extends ObjectOrInterfaceDefinition>(
     type: ObjectOrInterfaceDefinition,
-    {
-        $where,
-        $orderBy,
-        $pageSize,
-    }: {
+    opts: {
         $where?: WhereClause<T>;
         $orderBy: ObjectSetOrderBy<T>;
         $pageSize?: number;
     }
 ): UseList<T> {
     const { store } = useOsdkContext();
+    const { $where, $orderBy, $pageSize } = opts;
 
-    // TODO: handle changing props
-    const [observer] = React.useState(() => store.list({ type, $where, $orderBy, $pageSize }));
-    React.useEffect(() => {
-        return observer.dispose;
-    }, []);
+    const observer = store.list({ type, where: $where, orderBy: $orderBy });
     let snapshot = React.useSyncExternalStore(observer.subscribe, observer.getSnapshot);
 
     if (!snapshot) {
-        observer.refresh();
+        observer.refresh($pageSize);
         snapshot = observer.getSnapshot()!;
     }
 
     if (snapshot.type === "loading") {
-        // Suspense!
         // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw snapshot.promise;
     } else if (snapshot.type === "error") {
@@ -52,7 +44,7 @@ export function useList<T extends ObjectOrInterfaceDefinition>(
         hasMore,
         objects,
         isLoadingMore: snapshot.type === "reloading",
-        loadMore: observer.loadMore,
+        loadMore: (pageSize) => observer.loadMore(pageSize ?? $pageSize),
         refresh: observer.refresh,
     };
 }
