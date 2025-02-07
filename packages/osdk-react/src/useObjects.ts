@@ -5,7 +5,7 @@ import { ObjectSetOrderBy } from "./ontology-store";
 import { useOsdkContext } from "./OsdkContext";
 import React from "react";
 
-export interface UseList<T extends ObjectOrInterfaceDefinition> {
+export interface UseObjects<T extends ObjectOrInterfaceDefinition> {
     objects: Osdk<T>[];
     hasMore: boolean;
     isLoadingMore: boolean;
@@ -13,18 +13,18 @@ export interface UseList<T extends ObjectOrInterfaceDefinition> {
     refresh: () => void;
 }
 
-export function useList<T extends ObjectOrInterfaceDefinition>(
-    type: ObjectOrInterfaceDefinition,
+export function useObjects<T extends ObjectOrInterfaceDefinition>(
+    type: T,
     opts: {
         $where?: WhereClause<T>;
         $orderBy: ObjectSetOrderBy<T>;
         $pageSize?: number;
     }
-): UseList<T> {
+): UseObjects<T> {
     const { store } = useOsdkContext();
     const { $where, $orderBy, $pageSize } = opts;
 
-    const observer = store.list({ type, where: $where, orderBy: $orderBy });
+    const observer = store.objectList({ type, where: $where, orderBy: $orderBy });
     let snapshot = React.useSyncExternalStore(observer.subscribe, observer.getSnapshot);
 
     if (!snapshot) {

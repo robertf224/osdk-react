@@ -1,85 +1,118 @@
-import type { ObjectOrInterfaceDefinition, ActionDefinition } from "@osdk/api";
+import type { ObjectOrInterfaceDefinition, WhereClause } from "@osdk/api";
 import type { Client } from "@osdk/client";
 import {
-    LiveSetObserverRequest,
-    LiveSetObserverResponse,
-    ObjectSetReference,
-    type ListObserverRequest,
-    type ListObserverResponse,
-    type ObjectSet,
-} from "./types";
-import { ListObserver } from "./ListObserver";
-import { modernToLegacyWhereClause } from "./modernToLegacyWhereClause";
-import { DeepMap } from "./DeepMap";
-import { LiveSetObserver } from "./LiveSetObserver";
+    ObjectListObserver,
+    LiveObjectSetObserver,
+    ActionsObserver,
+    ObjectListObserverSnapshot,
+    LiveObjectSetObserverSnapsot,
+} from "./observers";
+import { ObjectSet } from "./object-set";
+import { ObjectList, ObjectSetOrderBy } from "./ObjectList";
 
-export interface OntologyStore {
-    list<T extends ObjectOrInterfaceDefinition>(request: ListObserverRequest<T>): ListObserverResponse<T>;
-    liveSet<T extends ObjectOrInterfaceDefinition>(
-        request: LiveSetObserverRequest<T>
-    ): LiveSetObserverResponse<T>;
-    applyAction<T extends ActionDefinition>(type: T): Promise<void>;
+export interface ObjectListObserverRequest<T extends ObjectOrInterfaceDefinition> {
+    type: T;
+    where?: WhereClause<T>;
+    orderBy: ObjectSetOrderBy<T>;
 }
 
-export function OntologyStore(client: Client): OntologyStore {
-    const listObservers = new DeepMap<ObjectSetReference, ListObserver<ObjectOrInterfaceDefinition>>();
-    const liveSetObservers = new DeepMap<ObjectSetReference, LiveSetObserver<ObjectOrInterfaceDefinition>>();
+export interface ObjectListObserverResponse<T extends ObjectOrInterfaceDefinition> {
+    subscribe: (callback: () => void) => () => void;
+    getSnapshot: () => ObjectListObserverSnapshot<T> | undefined;
+    loadMore: (pageSize?: number) => void;
+    refresh: (pageSize?: number) => void;
+}
 
-    const list = <T extends ObjectOrInterfaceDefinition>({
+// TODO: aggregations, queries
+
+export interface LiveObjectSetObserverRequest<T extends ObjectOrInterfaceDefinition> {
+    type: T;
+    where?: WhereClause<T>;
+}
+
+export interface LiveObjectSetObserverResponse {
+    subscribe: (callback: () => void) => () => void;
+    getSnapshot: () => LiveObjectSetObserverSnapsot | undefined;
+    refresh: () => void;
+}
+
+export class OntologyStore {
+    #client: Client;
+    #objectListObservers: Map<string, ObjectListObserver<ObjectOrInterfaceDefinition>>;
+    #liveObjectSetObservers: Map<string, LiveObjectSetObserver<ObjectOrInterfaceDefinition>>;
+    #actionsObserver: ActionsObserver;
+
+    constructor(client: Client) {
+        this.#client = client;
+        this.#objectListObservers = new Map();
+        this.#liveObjectSetObservers = new Map();
+        this.#actionsObserver = new ActionsObserver(client, (observation) => {
+            this.#objectListObservers.forEach((otherObserver) =>
+                otherObserver.processObservation(observation)
+            );
+        });
+    }
+
+    objectList = <T extends ObjectOrInterfaceDefinition>({
         type,
         where,
         orderBy,
-    }: ListObserverRequest<T>): ListObserverResponse<T> => {
-        const filter = where ? modernToLegacyWhereClause(where, type) : undefined;
-        const objectSetReference: ObjectSetReference = { type: type.apiName, filter };
+    }: ObjectListObserverRequest<T>): ObjectListObserverResponse<T> => {
+        const objectSet = new ObjectSet(this.#client, type, where);
+        const objectList = new ObjectList(objectSet, orderBy);
 
-        const existingObserver = listObservers.get(objectSetReference);
+        const existingObserver = this.#objectListObservers.get(JSON.stringify(objectList)) as
+            | ObjectListObserver<T>
+            | undefined;
         if (existingObserver) {
-            return existingObserver as ListObserverResponse<T>;
+            return {
+                subscribe: existingObserver.subscribe,
+                getSnapshot: existingObserver.getSnapshot,
+                loadMore: (...args) => void existingObserver.loadMore(...args),
+                refresh: (...args) => void existingObserver.refresh(...args),
+            };
         }
 
-        const objectSet: ObjectSet<T> = { type, filter };
-        const objectSetClient = where ? client(type).where(where) : client(type);
-        const observer = ListObserver(objectSetClient, objectSet, orderBy, (observation) => {
-            listObservers.forEach((otherObserver) => {
+        const observer = new ObjectListObserver(objectList, (observation) => {
+            this.#objectListObservers.forEach((otherObserver) => {
                 if (otherObserver !== observer) {
                     otherObserver.processObservation(observation);
                 }
             });
         });
-        listObservers.set(objectSetReference, observer);
+        this.#objectListObservers.set(
+            JSON.stringify(objectList),
+            observer as ObjectListObserver<ObjectOrInterfaceDefinition>
+        );
 
         return observer;
     };
 
-    const liveSet = <T extends ObjectOrInterfaceDefinition>({
+    liveObjectSet = <T extends ObjectOrInterfaceDefinition>({
         type,
         where,
-    }: LiveSetObserverRequest<T>): LiveSetObserverResponse<T> => {
-        // TODO: dedupe this code w/ above
-        const filter = where ? modernToLegacyWhereClause(where, type) : undefined;
-        const objectSetReference: ObjectSetReference = { type: type.apiName, filter };
+    }: LiveObjectSetObserverRequest<T>): LiveObjectSetObserverResponse => {
+        const objectSet = new ObjectSet(this.#client, type, where);
 
-        const existingObserver = liveSetObservers.get(objectSetReference);
+        const existingObserver = this.#liveObjectSetObservers.get(JSON.stringify(objectSet));
         if (existingObserver) {
-            return existingObserver as LiveSetObserverResponse<T>;
+            return existingObserver;
         }
 
-        const objectSet: ObjectSet<T> = { type, filter };
-        const objectSetClient = where ? client(type).where(where) : client(type);
-        const observer = LiveSetObserver(objectSetClient, objectSet, (observation) => {
-            listObservers.forEach((otherObserver) => otherObserver.processObservation(observation));
+        const observer = new LiveObjectSetObserver(objectSet, (observation) => {
+            this.#objectListObservers.forEach((otherObserver) =>
+                otherObserver.processObservation(observation)
+            );
         });
-        liveSetObservers.set(objectSetReference, observer);
+        this.#liveObjectSetObservers.set(
+            JSON.stringify(objectSet),
+            observer as LiveObjectSetObserver<ObjectOrInterfaceDefinition>
+        );
 
         return observer;
     };
 
-    return {
-        list,
-        liveSet,
-        applyAction: () => {
-            throw new Error("Not implemented.");
-        },
-    };
+    get applyAction(): (...args: Parameters<ActionsObserver["applyAction"]>) => void {
+        return (...args) => void this.#actionsObserver.applyAction(...args);
+    }
 }

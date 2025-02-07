@@ -4,16 +4,15 @@ import React from "react";
 import type { ObjectOrInterfaceDefinition, WhereClause } from "@osdk/api";
 import { useOsdkContext } from "./OsdkContext";
 
-export function useLiveSet<T extends ObjectOrInterfaceDefinition>(
-    type: ObjectOrInterfaceDefinition,
-    opts: {
+export function useLiveObjectSet<T extends ObjectOrInterfaceDefinition>(
+    type: T,
+    opts?: {
         $where?: WhereClause<T>;
     }
 ): void {
     const { store } = useOsdkContext();
-    const { $where } = opts;
 
-    const observer = store.liveSet({ type, where: $where });
+    const observer = store.liveObjectSet({ type, where: opts?.$where });
     let snapshot = React.useSyncExternalStore(observer.subscribe, observer.getSnapshot);
 
     if (!snapshot) {

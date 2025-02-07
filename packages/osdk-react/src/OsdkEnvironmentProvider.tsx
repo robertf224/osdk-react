@@ -12,7 +12,7 @@ export interface OsdkEnvironmentProviderProps {
 
 export const OsdkEnvironmentProvider: React.FC<OsdkEnvironmentProviderProps> = ({ client, children }) => {
     const osdkContext: OsdkContext = React.useMemo(() => {
-        return { store: OntologyStore(client) };
+        return { store: new OntologyStore(client) };
     }, [client]);
     return <OsdkContext.Provider value={osdkContext}>{children}</OsdkContext.Provider>;
 };
