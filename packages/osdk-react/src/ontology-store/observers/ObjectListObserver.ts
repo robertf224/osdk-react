@@ -77,7 +77,7 @@ export class ObjectListObserver<T extends ObjectOrInterfaceDefinition> {
 
             this.#notifySubscribers();
             this.#broadcastObservation({
-                createdOrModifiedObjects: data.map((object) => object.$as(object.$objectType)),
+                knownObjects: data.map((object) => object.$as(object.$objectType)),
                 deletedObjects: [],
             });
         } catch (error) {
@@ -123,7 +123,7 @@ export class ObjectListObserver<T extends ObjectOrInterfaceDefinition> {
 
             this.#notifySubscribers();
             this.#broadcastObservation({
-                createdOrModifiedObjects: data.map((object) => object.$as(object.$objectType)),
+                knownObjects: data.map((object) => object.$as(object.$objectType)),
                 deletedObjects: [],
             });
         } catch {
@@ -139,7 +139,7 @@ export class ObjectListObserver<T extends ObjectOrInterfaceDefinition> {
         }
 
         let dirty = false;
-        for (const object of observation.createdOrModifiedObjects) {
+        for (const object of observation.knownObjects) {
             if (this.#objectList.objectSet.contains(object)) {
                 const objectSetObject = object.$as(
                     this.#objectList.objectSet.type.apiName

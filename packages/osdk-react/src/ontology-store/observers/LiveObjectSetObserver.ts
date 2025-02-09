@@ -49,7 +49,7 @@ export class LiveObjectSetObserver<T extends ObjectOrInterfaceDefinition> {
             },
             onChange: (change) => {
                 this.#broadcastObservation({
-                    createdOrModifiedObjects:
+                    knownObjects:
                         change.state === "ADDED_OR_UPDATED"
                             ? [change.object.$as(change.object.$objectType)]
                             : [],

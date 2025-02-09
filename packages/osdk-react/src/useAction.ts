@@ -1,15 +1,16 @@
-import { ActionDefinition } from "@osdk/api";
+import type { ActionDefinition } from "@osdk/api";
 import { useOsdkContext } from "./OsdkContext";
 import React from "react";
+import { ActionParameters } from "./ontology-store";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type UseAction<T extends ActionDefinition> = [
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UseAction<T extends ActionDefinition<any>> = [
     isPending: boolean,
-    // TODO: get typings from OSDK upstream exported
-    apply: (parameters: Record<string, unknown>) => void,
+    applyAction: (parameters: ActionParameters<T>) => void,
 ];
 
-export function useAction<T extends ActionDefinition>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useAction<T extends ActionDefinition<any>>(
     type: T,
     opts?: {
         onCompleted?: () => void;
@@ -19,7 +20,7 @@ export function useAction<T extends ActionDefinition>(
     const { store } = useOsdkContext();
     const [isPending, setIsPending] = React.useState(false);
 
-    const apply = (parameters: Record<string, unknown>) => {
+    const apply = (parameters: ActionParameters<T>) => {
         setIsPending(true);
         store.applyAction(type, parameters, {
             onCompleted: () => {

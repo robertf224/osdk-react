@@ -19,7 +19,7 @@ function App() {
                     onChange={(e) => setTitle(e.target.value)}
                 />
                 <button
-                    className="rounded bg-blue-500 p-2 text-white"
+                    className="disabled:grayscale-50 rounded bg-blue-500 p-2 text-white"
                     type="button"
                     disabled={isPending}
                     onClick={() => addTask({ title })}

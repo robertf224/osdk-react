@@ -7,6 +7,6 @@ export interface ObjectReference {
 
 // TODO: maybe advertise that we’ve learned an object set is completely known to possibly complete some other ones
 export interface OntologyObservation {
-    createdOrModifiedObjects: Osdk<ObjectTypeDefinition>[];
+    knownObjects: Osdk<ObjectTypeDefinition>[];
     deletedObjects: ObjectReference[];
 }

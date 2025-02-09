@@ -1,6 +1,7 @@
-import { ActionDefinition } from "@osdk/api";
+import { ActionDefinition, ActionEditResponse } from "@osdk/api";
 import { Client } from "@osdk/client";
-import { ObjectReference, OntologyObservation } from "../OntologyObservation";
+import { OntologyObservation } from "../OntologyObservation";
+import { ActionParameters } from "../ActionParameters";
 
 export class ActionsObserver {
     #client: Client;
@@ -11,35 +12,32 @@ export class ActionsObserver {
         this.#broadcastObservation = broadcastObservation;
     }
 
-    applyAction = async <T extends ActionDefinition>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    applyAction = async <T extends ActionDefinition<any>>(
         type: T,
-        parameters: Record<string, unknown>,
+        parameters: ActionParameters<T>,
         opts?: {
             onCompleted?: () => void;
             onError?: (error: Error) => void;
         }
     ) => {
         try {
-            // TODO: export Action parameters type from OSDK so this can be correct and strongly typed
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const result = await this.#client(type).applyAction(parameters as any, { $returnEdits: true });
+            // Not sure why we need this cast and such here.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            const result = (await this.#client(type).applyAction(parameters, {
+                $returnEdits: true,
+            })) as ActionEditResponse;
+            const knownObjectReferences = [...(result.addedObjects ?? []), ...(result.modifiedObjects ?? [])];
             // TODO: upstream a better way to get heterogenous lists of objects in OSDK
-            const fetchObjectsFromReferences = (references: ObjectReference[]) =>
-                Promise.all(
-                    references.map((reference) =>
-                        this.#client({ type: "object", apiName: reference.objectType }).fetchOne(
-                            reference.primaryKey
-                        )
+            const knownObjects = await Promise.all(
+                knownObjectReferences.map((reference) =>
+                    this.#client({ type: "object", apiName: reference.objectType }).fetchOne(
+                        reference.primaryKey
                     )
-                );
-            const createdObjectsPromise = fetchObjectsFromReferences(result.addedObjects ?? []);
-            const modifiedObjectsPromise = fetchObjectsFromReferences(result.modifiedObjects ?? []);
-            const [createdObjects, modifiedObjects] = await Promise.all([
-                createdObjectsPromise,
-                modifiedObjectsPromise,
-            ]);
+                )
+            );
             this.#broadcastObservation({
-                createdOrModifiedObjects: [...createdObjects, ...modifiedObjects],
+                knownObjects,
                 // TODO: actually return these references once we get upstream in API Gateway
                 deletedObjects: [],
             });

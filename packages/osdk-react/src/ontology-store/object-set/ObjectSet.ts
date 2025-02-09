@@ -44,7 +44,10 @@ export class ObjectSet<T extends ObjectOrInterfaceDefinition> {
     };
 
     toOSDK = memoize((): ObjectSetClient<T> => {
-        const objectSetClient = this.#client(this.#type);
+        // Getting a type error like `Type 'ObjectTypeDefinition' is not assignable to type 'Experiment<"2.0.8"> | Experiment<"2.1.0">'.`
+        // think something needs to get fixed upstream.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const objectSetClient = this.#client(this.#type as any) as ObjectSetClient<T>;
         return this.#where ? objectSetClient.where(this.#where) : objectSetClient;
     });
 

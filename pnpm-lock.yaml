@@ -38,6 +38,9 @@ importers:
       '@gtd/sdk':
         specifier: file:./@gtd_sdk-0.2.0.tgz
         version: file:examples/todo-app/@gtd_sdk-0.2.0.tgz(@osdk/client@2.1.0-beta.24)
+      '@osdk/api':
+        specifier: ^2.0.13
+        version: 2.0.13
       '@osdk/client':
         specifier: ^2.1.0-beta.23
         version: 2.1.0-beta.24
@@ -582,8 +585,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@osdk/api@2.0.12':
-    resolution: {integrity: sha512-f9CumsOES9lFPE9jhGu+JJ0tDOtysbrDd97nCC3jijMazmQDVkzjNqY91+YtEFmecyBtGb1/EpKDlaYsFiZaxA==}
+  '@osdk/api@2.0.13':
+    resolution: {integrity: sha512-cffK7+4d6ZrI7kfwIxtVIA24JogBbL2yKHXfbhrfyyWvq9zLW/FZBPkFtD9IyBgFNzH7sj9W9aTaqPtJkYrD1w==}
 
   '@osdk/api@2.1.0-beta.24':
     resolution: {integrity: sha512-WZwEKcTRh3KWVtJbU80u81TWUx69RcvRpzY7QQ5MQ8N+U+hL12KhnpA89dNbKTnB44/IjbFGLTpLgrJqU5mHqA==}
@@ -2936,7 +2939,7 @@ snapshots:
 
   '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.2.0.tgz(@osdk/client@2.1.0-beta.24)':
     dependencies:
-      '@osdk/api': 2.0.12
+      '@osdk/api': 2.0.13
       '@osdk/client': 2.1.0-beta.24
 
   '@humanfs/core@0.19.1': {}
@@ -2982,7 +2985,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.18.0
 
-  '@osdk/api@2.0.12':
+  '@osdk/api@2.0.13':
     dependencies:
       '@types/geojson': 7946.0.16
       fetch-retry: 6.0.0
