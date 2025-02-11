@@ -1,7 +1,7 @@
 import React from "react";
 import { Task, editTask } from "@gtd/sdk";
+import { Osdk } from "@osdk/client";
 import { useAction } from "@bobbyfidz/osdk-react";
-import { Osdk } from "@osdk/api";
 
 interface TaskItemProps {
     task: Osdk<Task>;
@@ -16,7 +16,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         edit({
             Task: task,
             title: task.title!,
-            completed_at: task.completedAt ? undefined : new Date().toISOString(),
+            // @ts-expect-error OSDK doesn't let us pass explicit nulls in types right now
+            completed_at: task.completedAt ? null : new Date().toISOString(),
         });
     };
 
@@ -32,6 +33,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                 />
                 <span className={`text-lg ${task.completedAt ? "text-gray-500 line-through" : "text-black"}`}>
                     {task.title}
+                    {task.completedAt}
                 </span>
             </div>
         </div>

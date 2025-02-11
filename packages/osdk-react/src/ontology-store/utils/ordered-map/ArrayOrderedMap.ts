@@ -46,10 +46,10 @@ export class ArrayOrderedMap<K, V> implements OrderedMap<K, V> {
                 this.#comparator(value, this.#data[index]!.value) >= 0 &&
                 this.#comparator(value, this.#data[index + 1]!.value) < 0
             ) {
-                return index;
+                return index + 1;
             }
         }
 
-        return this.#data.length - 1;
+        return this.#data.length;
     };
 }

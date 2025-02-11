@@ -4,7 +4,7 @@ import React from "react";
 import TaskItem from "./Task";
 
 function App() {
-    const { objects: tasks } = useObjects(Task, { $orderBy: { completedAt: "asc" } });
+    const { objects: tasks } = useObjects(Task, { $orderBy: { completedAt: "asc", createdAt: "desc" } });
     useLiveObjectSet(Task);
 
     const [title, setTitle] = React.useState("");
