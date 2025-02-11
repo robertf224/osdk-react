@@ -1,40 +1,92 @@
+import { useAction, useLiveObjectSet, useObjects } from "@bobbyfidz/osdk-react";
 import { createTask, Task } from "@gtd/sdk";
-import { useAction, useObjects, useLiveObjectSet } from "@bobbyfidz/osdk-react";
-import React from "react";
-import TaskItem from "./Task";
+import React, { useState } from "react";
+import TaskItem from "./TaskItem";
+import FlipMove from "react-flip-move";
 
 function App() {
-    const { objects: tasks } = useObjects(Task, { $orderBy: { completedAt: "asc", createdAt: "desc" } });
+    const {
+        objects: tasks,
+        hasMore,
+        isLoadingMore,
+        loadMore,
+    } = useObjects(Task, { $orderBy: { completedAt: "asc", createdAt: "desc" }, $pageSize: 10 });
     useLiveObjectSet(Task);
 
-    const [title, setTitle] = React.useState("");
     const [addTask, isPending] = useAction(createTask);
+    const [newTaskTitle, setNewTaskTitle] = useState("");
+
+    const handleAddTask = () => {
+        if (!newTaskTitle.trim()) return;
+        // Add the new task with the title
+        addTask({ title: newTaskTitle }, { onCompleted: () => setNewTaskTitle("") });
+    };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                <h1 className="mb-4 text-center text-3xl font-bold">Todo App</h1>
-                <div className="mb-4">
-                    <textarea
-                        className="mb-2 w-full rounded border border-gray-300 p-2"
-                        placeholder="What's your next task?"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+        <div className="min-h-screen bg-gray-100 p-8">
+            <div className="mx-auto max-w-xl">
+                <h1 className="mb-6 text-center text-3xl font-bold">Todo App</h1>
+                <div className="mb-6 flex">
+                    <input
+                        type="text"
+                        value={newTaskTitle}
+                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                        placeholder="Add a new task"
+                        className="flex-grow rounded-l-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     />
                     <button
-                        className="w-full rounded bg-blue-500 py-2 text-white disabled:opacity-50"
+                        onClick={handleAddTask}
                         type="button"
-                        disabled={isPending || title.trim() === ""}
-                        onClick={() => addTask({ title }, { onCompleted: () => setTitle("") })}
+                        disabled={isPending}
+                        className="rounded-r-lg bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 disabled:opacity-50"
                     >
-                        Add Task
+                        {isPending ? "Adding..." : "Add Task"}
                     </button>
                 </div>
-                <div className="space-y-2">
-                    {tasks.map((task) => (
-                        <TaskItem key={task.$primaryKey} task={task} />
-                    ))}
-                </div>
+                {tasks && tasks.length > 0 ? (
+                    <FlipMove className="flex flex-col gap-4">
+                        {tasks.map((task) => (
+                            <div key={task.id}>
+                                <TaskItem task={task} />
+                            </div>
+                        ))}
+                    </FlipMove>
+                ) : (
+                    <p className="text-center text-gray-500">No tasks yet</p>
+                )}
+                {hasMore && (
+                    <div className="mt-4 flex items-center justify-center">
+                        <button
+                            onClick={() => loadMore()}
+                            disabled={isLoadingMore}
+                            className="flex items-center rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 disabled:opacity-50"
+                        >
+                            {isLoadingMore && (
+                                <svg
+                                    className="mr-2 inline-block h-5 w-5 animate-spin"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                    ></path>
+                                </svg>
+                            )}
+                            {isLoadingMore ? "Loading..." : "Load more"}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
