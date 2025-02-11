@@ -36,8 +36,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/osdk-react
       '@gtd/sdk':
-        specifier: file:./@gtd_sdk-0.2.0.tgz
-        version: file:examples/todo-app/@gtd_sdk-0.2.0.tgz(@osdk/client@2.1.0-beta.24)
+        specifier: file:./@gtd_sdk-0.3.0.tgz
+        version: file:examples/todo-app/@gtd_sdk-0.3.0.tgz(@osdk/client@2.1.0-beta.24)
       '@osdk/client':
         specifier: ^2.1.0-beta.23
         version: 2.1.0-beta.24
@@ -535,9 +535,9 @@ packages:
     resolution: {integrity: sha512-lB05FkqEdUg2AA0xEbUz0SnkXT1LcCTa438W4IWTUh4hdOnVbQyOJ81OrDXsJk/LSiJHubgGEFoR5EHq1NsH1A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.2.0.tgz':
-    resolution: {integrity: sha512-2B9P5AB6M6auZZ92uRobHALacuTJC/IXCXK6p0V0OguxDCN+diFXPQcjSdmD8Is5k6KyUkGOJCTuikajOpgx5A==, tarball: file:examples/todo-app/@gtd_sdk-0.2.0.tgz}
-    version: 0.2.0
+  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.3.0.tgz':
+    resolution: {integrity: sha512-E20tBSj/eYwcfKuuLSkwVlJjcf1UdKJ02Z1fusCscCVjJCz+h+0BPA7lEMBlxrfKyDqWwwH24EkoWHCZPJFuHw==, tarball: file:examples/todo-app/@gtd_sdk-0.3.0.tgz}
+    version: 0.3.0
     peerDependencies:
       '@osdk/client': ^2.0.12
 
@@ -2934,7 +2934,7 @@ snapshots:
       '@eslint/core': 0.10.0
       levn: 0.4.1
 
-  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.2.0.tgz(@osdk/client@2.1.0-beta.24)':
+  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.3.0.tgz(@osdk/client@2.1.0-beta.24)':
     dependencies:
       '@osdk/api': 2.0.13
       '@osdk/client': 2.1.0-beta.24

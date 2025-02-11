@@ -16,6 +16,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         edit({
             Task: task,
             title: task.title!,
+            // @ts-expect-error OSDK doesn't let us pass explicit nulls in types right now
             completed_at: task.completedAt ? null : new Date().toISOString(),
         });
     };
