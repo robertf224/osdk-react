@@ -144,17 +144,23 @@ export class ObjectListObserver<T extends ObjectOrInterfaceDefinition> {
                 const objectSetObject = object.$as(
                     this.#objectList.objectSet.type.apiName
                 ) as unknown as Osdk<T>;
+
+                const deleted = this.#state.value.data.delete(objectSetObject.$primaryKey);
+                if (deleted) {
+                    dirty = true;
+                }
                 const insertionIndex = this.#state.value.data.findInsertionIndex(
                     objectSetObject.$primaryKey,
                     objectSetObject
                 );
+
                 // If we have more data to load and the object would go after all current items,
                 // we can't determine the correct position yet.
                 if (
                     this.#state.value.nextPageToken !== undefined &&
                     insertionIndex === this.#state.value.data.size
                 ) {
-                    return;
+                    continue;
                 }
                 this.#state.value.data.set(objectSetObject.$primaryKey, objectSetObject);
                 dirty = true;
