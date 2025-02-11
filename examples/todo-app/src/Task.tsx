@@ -1,7 +1,7 @@
 import React from "react";
 import { Task, editTask } from "@gtd/sdk";
+import { Osdk } from "@osdk/client";
 import { useAction } from "@bobbyfidz/osdk-react";
-import { Osdk } from "@osdk/api";
 
 interface TaskItemProps {
     task: Osdk<Task>;

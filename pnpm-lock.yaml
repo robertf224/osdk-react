@@ -38,9 +38,6 @@ importers:
       '@gtd/sdk':
         specifier: file:./@gtd_sdk-0.2.0.tgz
         version: file:examples/todo-app/@gtd_sdk-0.2.0.tgz(@osdk/client@2.1.0-beta.24)
-      '@osdk/api':
-        specifier: ^2.0.13
-        version: 2.0.13
       '@osdk/client':
         specifier: ^2.1.0-beta.23
         version: 2.1.0-beta.24
