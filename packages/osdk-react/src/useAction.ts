@@ -5,22 +5,22 @@ import { ActionParameters } from "./ontology-store";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UseAction<T extends ActionDefinition<any>> = [
+    applyAction: (
+        parameters: ActionParameters<T>,
+        opts?: {
+            onCompleted?: () => void;
+            onError?: (error: Error) => void;
+        }
+    ) => void,
     isPending: boolean,
-    applyAction: (parameters: ActionParameters<T>) => void,
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useAction<T extends ActionDefinition<any>>(
-    type: T,
-    opts?: {
-        onCompleted?: () => void;
-        onError?: (error: Error) => void;
-    }
-): UseAction<T> {
+export function useAction<T extends ActionDefinition<any>>(type: T): UseAction<T> {
     const { store } = useOsdkContext();
     const [isPending, setIsPending] = React.useState(false);
 
-    const apply = (parameters: ActionParameters<T>) => {
+    const applyAction: UseAction<T>[0] = (parameters, opts) => {
         setIsPending(true);
         store.applyAction(type, parameters, {
             onCompleted: () => {
@@ -34,5 +34,5 @@ export function useAction<T extends ActionDefinition<any>>(
         });
     };
 
-    return [isPending, apply];
+    return [applyAction, isPending];
 }
