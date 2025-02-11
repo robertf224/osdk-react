@@ -14,7 +14,7 @@
     "scripts": {
         "build": "tsc",
         "lint": "eslint",
-        "test": "vitest run"
+        "test": "vitest run --pass-with-no-tests"
     },
     "dependencies": {
         "@osdk/oauth": "^1.0.1",
