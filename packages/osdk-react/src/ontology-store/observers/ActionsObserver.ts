@@ -3,6 +3,12 @@ import { Client } from "@osdk/client";
 import { ObjectReference, OntologyObservation } from "../OntologyObservation";
 import { ActionParameters } from "../ActionParameters";
 
+export interface ActionEdits {
+    createdObjects: Osdk.Instance<ObjectTypeDefinition>[];
+    modifiedObjects: Osdk.Instance<ObjectTypeDefinition>[];
+    deletedObjects: ObjectReference[];
+}
+
 export class ActionsObserver {
     #client: Client;
     #broadcastObservation: (observation: OntologyObservation) => void;
@@ -17,11 +23,7 @@ export class ActionsObserver {
         type: T,
         parameters: ActionParameters<T>,
         opts?: {
-            onCompleted?: (edits: {
-                createdObjects: Osdk.Instance<ObjectTypeDefinition>[];
-                modifiedObjects: Osdk.Instance<ObjectTypeDefinition>[];
-                deletedObjects: ObjectReference[];
-            }) => void;
+            onCompleted?: (edits: ActionEdits) => void;
             onError?: (error: Error) => void;
         }
     ) => {
