@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.2.0
+
+### Minor Changes
+
+- febd854: start returning edits from useAction
+
 ## 0.1.1
 
 ### Patch Changes
