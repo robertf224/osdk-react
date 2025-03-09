@@ -1,14 +1,14 @@
 import type { ActionDefinition } from "@osdk/api";
 import { useOsdkContext } from "./OsdkContext";
 import React from "react";
-import { ActionParameters } from "./ontology-store";
+import { ActionParameters, ActionEdits } from "./ontology-store";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UseAction<T extends ActionDefinition<any>> = [
     applyAction: (
         parameters: ActionParameters<T>,
         opts?: {
-            onCompleted?: () => void;
+            onCompleted?: (edits: ActionEdits) => void;
             onError?: (error: Error) => void;
         }
     ) => void,
@@ -23,9 +23,9 @@ export function useAction<T extends ActionDefinition<any>>(type: T): UseAction<T
     const applyAction: UseAction<T>[0] = (parameters, opts) => {
         setIsPending(true);
         store.applyAction(type, parameters, {
-            onCompleted: () => {
+            onCompleted: (edits) => {
                 setIsPending(false);
-                opts?.onCompleted?.();
+                opts?.onCompleted?.(edits);
             },
             onError: (error) => {
                 setIsPending(false);

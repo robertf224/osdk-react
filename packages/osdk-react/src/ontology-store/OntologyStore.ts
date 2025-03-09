@@ -5,7 +5,7 @@ import {
     LiveObjectSetObserver,
     ActionsObserver,
     ObjectListObserverSnapshot,
-    LiveObjectSetObserverSnapsot,
+    LiveObjectSetObserverSnapshot,
 } from "./observers";
 import { ObjectSet } from "./object-set";
 import { ObjectList, ObjectSetOrderBy } from "./ObjectList";
@@ -32,7 +32,7 @@ export interface LiveObjectSetObserverRequest<T extends ObjectOrInterfaceDefinit
 
 export interface LiveObjectSetObserverResponse {
     subscribe: (callback: () => void) => () => void;
-    getSnapshot: () => LiveObjectSetObserverSnapsot | undefined;
+    getSnapshot: () => LiveObjectSetObserverSnapshot | undefined;
     refresh: () => void;
 }
 
