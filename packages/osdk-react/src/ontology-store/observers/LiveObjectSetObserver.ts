@@ -4,7 +4,7 @@ import { OntologyObservation } from "../OntologyObservation";
 import invariant from "tiny-invariant";
 
 // TODO: try to coalesce w/ AsyncValue
-export type LiveObjectSetObserverSnapsot = { status: "connecting" | "connected" | "error"; error?: Error };
+export type LiveObjectSetObserverSnapshot = { status: "connecting" | "connected" | "error"; error?: Error };
 
 export class LiveObjectSetObserver<T extends ObjectOrInterfaceDefinition> {
     #objectSet: ObjectSet<T>;
@@ -12,7 +12,7 @@ export class LiveObjectSetObserver<T extends ObjectOrInterfaceDefinition> {
 
     #subscribers: Set<() => void>;
     #watcherSubscription: { unsubscribe: () => void } | undefined;
-    #state: LiveObjectSetObserverSnapsot | undefined;
+    #state: LiveObjectSetObserverSnapshot | undefined;
 
     constructor(objectSet: ObjectSet<T>, broadcastObservation: (observation: OntologyObservation) => void) {
         // We only allow live object sets with no filters for now so that we can understand when objects are
