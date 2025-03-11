@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.3.0
+
+### Minor Changes
+
+- c98da46: add Ontology Metadata loads
+
 ## 0.2.0
 
 ### Minor Changes
