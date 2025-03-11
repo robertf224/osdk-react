@@ -1,4 +1,4 @@
-import { useAction, useLiveObjectSet, useObjects } from "@bobbyfidz/osdk-react";
+import { useAction, useLiveObjectSet, useObjects, useOntologyMetadata } from "@bobbyfidz/osdk-react";
 import { createTask, Task } from "@gtd/sdk";
 import React, { useState } from "react";
 import TaskItem from "./TaskItem";
