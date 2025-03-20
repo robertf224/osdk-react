@@ -1,6 +1,6 @@
 import { useAction, useLiveObjectSet, useObjects } from "@bobbyfidz/osdk-react";
 import { createTask, Task } from "@gtd/sdk";
-import React, { useState } from "react";
+import React from "react";
 import TaskItem from "./TaskItem";
 import FlipMove from "react-flip-move";
 
@@ -14,7 +14,7 @@ function App() {
     useLiveObjectSet(Task);
 
     const [addTask, isPending] = useAction(createTask);
-    const [newTaskTitle, setNewTaskTitle] = useState("");
+    const [newTaskTitle, setNewTaskTitle] = React.useState("");
 
     const handleAddTask = () => {
         if (!newTaskTitle.trim()) return;
