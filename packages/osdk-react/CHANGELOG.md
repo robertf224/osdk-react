@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.3.1
+
+### Patch Changes
+
+- 71b2de5: fix loading
+
 ## 0.3.0
 
 ### Minor Changes
