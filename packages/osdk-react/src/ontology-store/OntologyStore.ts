@@ -7,7 +7,6 @@ import {
     ActionsObserver,
     ObjectListObserverSnapshot,
     LiveObjectSetObserverSnapshot,
-    PromiseObserver,
 } from "./observers";
 import { ObjectSet } from "./object-set";
 import { ObjectList, ObjectSetOrderBy } from "./ObjectList";
@@ -43,7 +42,6 @@ export class OntologyStore {
     #objectListObservers: Map<string, ObjectListObserver<ObjectOrInterfaceDefinition>>;
     #liveObjectSetObservers: Map<string, LiveObjectSetObserver<ObjectOrInterfaceDefinition>>;
     #actionsObserver: ActionsObserver;
-    #metadataObservers: Map<string, PromiseObserver<Awaited<ReturnType<Client["fetchMetadata"]>>>>;
 
     constructor(client: Client) {
         this.#client = client;
@@ -54,7 +52,6 @@ export class OntologyStore {
                 otherObserver.processObservation(observation)
             );
         });
-        this.#metadataObservers = new Map();
     }
 
     objectList = <T extends ObjectOrInterfaceDefinition>({
@@ -119,22 +116,4 @@ export class OntologyStore {
     get applyAction(): (...args: Parameters<ActionsObserver["applyAction"]>) => void {
         return (...args) => void this.#actionsObserver.applyAction(...args);
     }
-
-    metadata = <T extends Parameters<Client["fetchMetadata"]>[0]>(
-        type: T
-    ): PromiseObserver<NonNullable<T["__DefinitionMetadata"]>> => {
-        const existingObserver = this.#metadataObservers.get(
-            JSON.stringify({ type: type.type, apiName: type.apiName })
-        );
-        if (existingObserver) {
-            return existingObserver as PromiseObserver<NonNullable<T["__DefinitionMetadata"]>>;
-        }
-
-        const observer = new PromiseObserver(() => this.#client.fetchMetadata(type)) as PromiseObserver<
-            NonNullable<T["__DefinitionMetadata"]>
-        >;
-        this.#metadataObservers.set(JSON.stringify({ type: type.type, apiName: type.apiName }), observer);
-
-        return observer;
-    };
 }
