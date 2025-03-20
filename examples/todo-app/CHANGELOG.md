@@ -1,5 +1,13 @@
 # @bobbyfidz/todo-app
 
+## 0.0.6
+
+### Patch Changes
+
+- df254f7: clean up filtering
+- Updated dependencies [df254f7]
+    - @bobbyfidz/osdk-react@0.3.2
+
 ## 0.0.5
 
 ### Patch Changes

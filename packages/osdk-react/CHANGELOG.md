@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.3.2
+
+### Patch Changes
+
+- df254f7: clean up filtering
+
 ## 0.3.1
 
 ### Patch Changes
