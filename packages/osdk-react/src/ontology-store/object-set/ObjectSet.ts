@@ -1,7 +1,6 @@
 import type { ObjectOrInterfaceDefinition, Osdk, WhereClause, ObjectSet as ObjectSetClient } from "@osdk/api";
 import type { Client } from "@osdk/client";
 import memoize from "memoize-one";
-import { modernToLegacyWhereClause } from "./modernToLegacyWhereClause";
 import { objectMatchesFilter } from "./objectMatchesFilter";
 
 export class ObjectSet<T extends ObjectOrInterfaceDefinition> {
@@ -9,23 +8,16 @@ export class ObjectSet<T extends ObjectOrInterfaceDefinition> {
     // Real Object Sets can obviously be more complex than this, but this is all we allow for now partly
     // because it's what OSDK actually lets us get, partly because it will keep the implementation scoped down.
     #type: T;
-    #where?: WhereClause<T>;
+    #filter?: WhereClause<T>;
 
-    constructor(client: Client, type: T, where?: WhereClause<T>) {
+    constructor(client: Client, type: T, filter?: WhereClause<T>) {
         this.#client = client;
         this.#type = type;
-        this.#where = where;
-    }
-
-    #getFilter = memoize(() =>
-        this.#where ? modernToLegacyWhereClause(this.#where, this.#type) : undefined
-    );
-    get #filter() {
-        return this.#getFilter();
+        this.#filter = filter;
     }
 
     get hasFilter() {
-        return this.#where !== undefined;
+        return this.#filter !== undefined;
     }
 
     get type() {
@@ -48,7 +40,7 @@ export class ObjectSet<T extends ObjectOrInterfaceDefinition> {
         // think something needs to get fixed upstream.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const objectSetClient = this.#client(this.#type as any) as ObjectSetClient<T>;
-        return this.#where ? objectSetClient.where(this.#where) : objectSetClient;
+        return this.#filter ? objectSetClient.where(this.#filter) : objectSetClient;
     });
 
     toJSON = () => {
