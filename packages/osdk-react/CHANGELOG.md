@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.3.3
+
+### Patch Changes
+
+- bc2db4d: clean up deps
+
 ## 0.3.2
 
 ### Patch Changes
