@@ -1,44 +1,71 @@
-import type { ObjectOrInterfaceDefinition, Osdk } from "@osdk/api";
-import type { SearchJsonQueryV2, PropertyIdentifier } from "@osdk/internal.foundry.core";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-export function objectMatchesFilter(
-    object: Osdk<ObjectOrInterfaceDefinition>,
-    filter: SearchJsonQueryV2
+// Adapted from https://github.com/palantir/osdk-ts/blob/main/packages/client/src/observable/internal/objectMatchesWhereClause.ts
+
+import type { ObjectOrInterfaceDefinition, Osdk, PossibleWhereClauseFilters, WhereClause } from "@osdk/api";
+
+export function objectMatchesFilter<T extends ObjectOrInterfaceDefinition>(
+    object: Osdk<T>,
+    filter: WhereClause<T>
 ): boolean {
-    if (filter.type === "and") {
-        return filter.value.every((f) => objectMatchesFilter(object, f));
-    } else if (filter.type === "or") {
-        return filter.value.some((f) => objectMatchesFilter(object, f));
-    } else if (filter.type === "not") {
-        return !objectMatchesFilter(object, filter.value);
+    if (Object.keys(filter).length === 0) {
+        return true;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-    const value = getPropertyValue(object, filter.propertyIdentifier!) as any;
-    if (filter.type === "eq") {
-        return value === filter.value;
-    } else if (filter.type === "gt") {
-        return value > filter.value;
-    } else if (filter.type === "gte") {
-        return value >= filter.value;
-    } else if (filter.type === "lt") {
-        return value < filter.value;
-    } else if (filter.type === "lte") {
-        return value <= filter.value;
+    if ("$and" in filter) {
+        const andFilter = filter.$and as WhereClause<T>[];
+        return andFilter.every((w) => objectMatchesFilter(object, w));
     }
-    // TODO: implement the rest of the filters
-    return false;
-}
+    if ("$or" in filter) {
+        const orFilter = filter.$or as WhereClause<T>[];
+        return orFilter.some((w) => objectMatchesFilter(object, w));
+    }
+    if ("$not" in filter) {
+        const notFilter = filter.$not as WhereClause<T>;
+        return !objectMatchesFilter(object, notFilter);
+    }
 
-// TODO: figure out how this works with array properties
-function getPropertyValue(
-    object: Osdk<ObjectOrInterfaceDefinition>,
-    propertyIdentifier: PropertyIdentifier
-): unknown {
-    if (propertyIdentifier.type === "property") {
-        return object[propertyIdentifier.apiName];
-    } else {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        return object[propertyIdentifier.propertyApiName][propertyIdentifier.structFieldApiName];
-    }
+    return Object.entries(filter).every(([key, filter]) => {
+        if (typeof filter === "object") {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const propertyValue = object[key as keyof typeof object] as any;
+            const [firstFilter] = Object.keys(
+                filter as Record<string, any>
+            ) as Array<PossibleWhereClauseFilters>;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const filterValue = (filter as Record<string, any>)[firstFilter!];
+
+            switch (firstFilter) {
+                case "$eq":
+                    return propertyValue === filterValue;
+                case "$gt":
+                    return propertyValue > filterValue;
+                case "$lt":
+                    return propertyValue < filterValue;
+                case "$gte":
+                    return propertyValue >= filterValue;
+                case "$lte":
+                    return propertyValue <= filterValue;
+                case "$ne":
+                    return propertyValue !== filterValue;
+                case "$in":
+                    return (filterValue as Array<unknown>).includes(propertyValue);
+                case "$isNull":
+                    return propertyValue === null;
+                case "$startsWith":
+                    return (propertyValue as string).startsWith(filterValue as string);
+                // TODO: implement other filters
+                default:
+                    return false;
+            }
+        }
+
+        if (key in object) {
+            if (object[key as keyof typeof object] === filter) {
+                return true;
+            }
+        }
+
+        return false;
+    });
 }

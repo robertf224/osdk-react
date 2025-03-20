@@ -10,7 +10,10 @@ function App() {
         hasMore,
         isLoadingMore,
         loadMore,
-    } = useObjects(Task, { $orderBy: { completedAt: "asc", createdAt: "desc" }, $pageSize: 10 });
+    } = useObjects(Task, {
+        $orderBy: { completedAt: "asc", createdAt: "desc" },
+        $pageSize: 10,
+    });
     useLiveObjectSet(Task);
 
     const [addTask, isPending] = useAction(createTask);
