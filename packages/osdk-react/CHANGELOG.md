@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.3.5
+
+### Patch Changes
+
+- 2932957: bump osdk
+
 ## 0.3.4
 
 ### Patch Changes
