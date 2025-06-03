@@ -54,8 +54,7 @@ export class ActionsObserver {
                 createdObjectsPromise,
                 modifiedObjectsPromise,
             ]);
-            // TODO: actually return these references once we get upstream in API Gateway
-            const deletedObjects: ObjectReference[] = [];
+            const deletedObjects = result.deletedObjects ?? [];
             this.#broadcastObservation({
                 knownObjects: [...createdObjects, ...modifiedObjects],
                 deletedObjects,
