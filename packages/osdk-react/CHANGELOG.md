@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.3.4
+
+### Patch Changes
+
+- 3a1b005: upgrade osdk
+
 ## 0.3.3
 
 ### Patch Changes
