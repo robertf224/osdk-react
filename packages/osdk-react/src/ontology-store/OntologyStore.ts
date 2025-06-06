@@ -98,6 +98,11 @@ export class OntologyStore {
             }
         );
 
+        this.#objectListReleaseBuffer.set(
+            key,
+            newObserver as ObjectListObserver<ObjectOrInterfaceDefinition>
+        );
+
         return newObserver;
     };
 
@@ -137,6 +142,11 @@ export class OntologyStore {
                     newObserver as LiveObjectSetObserver<ObjectOrInterfaceDefinition>
                 );
             }
+        );
+
+        this.#liveObjectSetReleaseBuffer.set(
+            key,
+            newObserver as LiveObjectSetObserver<ObjectOrInterfaceDefinition>
         );
 
         return newObserver;
