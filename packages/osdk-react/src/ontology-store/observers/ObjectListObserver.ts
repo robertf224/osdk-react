@@ -193,4 +193,14 @@ export class ObjectListObserver<T extends ObjectOrInterfaceDefinition> {
             this.#notifySubscribers();
         }
     };
+
+    get objectList() {
+        return this.#objectList;
+    }
+
+    lookup = (primaryKey: string | number | boolean): Osdk<T> | undefined => {
+        if (this.#state && "value" in this.#state) {
+            return this.#state.value.data.get(primaryKey as PrimaryKeyType<T>);
+        }
+    };
 }

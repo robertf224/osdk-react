@@ -6,6 +6,7 @@ import { RouterProvider } from "react-router/dom";
 import App from "./App";
 import Login from "./Login";
 import AuthCallback from "./AuthCallback";
+import TaskPage from "./TaskPage";
 import "./globals.css";
 import { client } from "./client";
 
@@ -22,6 +23,10 @@ const router = createBrowserRouter(
         {
             path: "/auth/callback",
             element: <AuthCallback />,
+        },
+        {
+            path: "/task/:taskId",
+            element: <TaskPage />,
         },
     ],
     { basename: import.meta.env.BASE_URL }

@@ -2,6 +2,7 @@ import React from "react";
 import { useAction } from "@bobbyfidz/osdk-react";
 import { editTask, Task } from "@gtd/sdk";
 import { Osdk } from "@osdk/client";
+import { Link } from "react-router";
 
 interface TaskItemProps {
     task: Osdk<Task>;
@@ -10,7 +11,9 @@ interface TaskItemProps {
 function TaskItem({ task }: TaskItemProps) {
     const [updateTask, isUpdating] = useAction(editTask);
 
-    const handleToggle = async () => {
+    const handleToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
         updateTask({
             Task: task,
             // @ts-expect-error OSDK types don't allow explicit null yet.
@@ -20,12 +23,16 @@ function TaskItem({ task }: TaskItemProps) {
     };
 
     return (
-        <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow">
-            <div className="flex items-center">
+        <Link
+            to={`/task/${task.id}`}
+            className="flex cursor-pointer items-center justify-between rounded-lg bg-white p-4 shadow hover:bg-gray-50"
+        >
+            <div className="flex items-center" onClick={(e) => e.preventDefault()}>
                 <input
                     type="checkbox"
                     checked={!!task.completedAt}
                     onChange={handleToggle}
+                    onClick={(e) => e.stopPropagation()}
                     disabled={isUpdating}
                     className="h-5 w-5 rounded border-gray-300 text-blue-600"
                 />
@@ -57,7 +64,7 @@ function TaskItem({ task }: TaskItemProps) {
                     ></path>
                 </svg>
             )}
-        </div>
+        </Link>
     );
 }
 

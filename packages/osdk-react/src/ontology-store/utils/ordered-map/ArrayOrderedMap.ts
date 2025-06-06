@@ -11,6 +11,10 @@ export class ArrayOrderedMap<K, V> implements OrderedMap<K, V> {
         }
     }
 
+    get = (key: K): V | undefined => {
+        return this.#data.find((e) => e.key === key)?.value;
+    };
+
     set = (key: K, value: V): this => {
         this.delete(key);
         const insertionIndex = this.findInsertionIndex(key, value);

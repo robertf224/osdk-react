@@ -75,6 +75,14 @@ export class LruMap<K, V> {
         return this.#index.size;
     }
 
+    *values(): IterableIterator<V> {
+        let current = this.#head;
+        while (current) {
+            yield current.value;
+            current = current.next;
+        }
+    }
+
     #removeEntry(entry: LruMapEntry<K, V>): void {
         if (entry.prev) {
             entry.prev.next = entry.next;

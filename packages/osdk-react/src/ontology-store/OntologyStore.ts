@@ -1,4 +1,4 @@
-import type { ObjectOrInterfaceDefinition, WhereClause } from "@osdk/api";
+import type { ObjectOrInterfaceDefinition, Osdk, PrimaryKeyType, WhereClause } from "@osdk/api";
 import type { Client } from "@osdk/client";
 import {
     ObjectListObserver,
@@ -57,6 +57,19 @@ export class OntologyStore {
             );
         });
     }
+
+    lookup = <T extends ObjectOrInterfaceDefinition>(
+        type: T,
+        primaryKey: PrimaryKeyType<T>
+    ): Osdk<T> | undefined => {
+        const observers = [...this.#objectListObservers.values(), ...this.#objectListReleaseBuffer.values()];
+        for (const observer of observers) {
+            if (observer.objectList.objectSet.type.apiName === type.apiName) {
+                const result = observer.lookup(primaryKey);
+                if (result) return result as Osdk<T>;
+            }
+        }
+    };
 
     objectList = <T extends ObjectOrInterfaceDefinition>({
         type,
