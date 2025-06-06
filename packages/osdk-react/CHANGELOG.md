@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.4.0
+
+### Minor Changes
+
+- d6f9518: add gc + useObject hook with initial loading
+
 ## 0.3.5
 
 ### Patch Changes
