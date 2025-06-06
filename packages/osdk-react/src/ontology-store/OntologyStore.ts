@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ObjectOrInterfaceDefinition, WhereClause } from "@osdk/api";
+import type { ObjectOrInterfaceDefinition, Osdk, PrimaryKeyType, WhereClause } from "@osdk/api";
 import type { Client } from "@osdk/client";
 import {
     ObjectListObserver,
@@ -10,6 +9,7 @@ import {
 } from "./observers";
 import { ObjectSet } from "./object-set";
 import { ObjectList, ObjectSetOrderBy } from "./ObjectList";
+import { LruMap } from "./utils/LruMap";
 
 export interface ObjectListObserverRequest<T extends ObjectOrInterfaceDefinition> {
     type: T;
@@ -41,18 +41,35 @@ export class OntologyStore {
     #client: Client;
     #objectListObservers: Map<string, ObjectListObserver<ObjectOrInterfaceDefinition>>;
     #liveObjectSetObservers: Map<string, LiveObjectSetObserver<ObjectOrInterfaceDefinition>>;
+    #objectListReleaseBuffer: LruMap<string, ObjectListObserver<ObjectOrInterfaceDefinition>>;
+    #liveObjectSetReleaseBuffer: LruMap<string, LiveObjectSetObserver<ObjectOrInterfaceDefinition>>;
     #actionsObserver: ActionsObserver;
 
     constructor(client: Client) {
         this.#client = client;
         this.#objectListObservers = new Map();
         this.#liveObjectSetObservers = new Map();
+        this.#objectListReleaseBuffer = new LruMap(20);
+        this.#liveObjectSetReleaseBuffer = new LruMap(20);
         this.#actionsObserver = new ActionsObserver(client, (observation) => {
             this.#objectListObservers.forEach((otherObserver) =>
                 otherObserver.processObservation(observation)
             );
         });
     }
+
+    lookup = <T extends ObjectOrInterfaceDefinition>(
+        type: T,
+        primaryKey: PrimaryKeyType<T>
+    ): Osdk<T> | undefined => {
+        const observers = [...this.#objectListObservers.values(), ...this.#objectListReleaseBuffer.values()];
+        for (const observer of observers) {
+            if (observer.objectList.objectSet.type.apiName === type.apiName) {
+                const result = observer.lookup(primaryKey);
+                if (result) return result as Osdk<T>;
+            }
+        }
+    };
 
     objectList = <T extends ObjectOrInterfaceDefinition>({
         type,
@@ -61,32 +78,45 @@ export class OntologyStore {
     }: ObjectListObserverRequest<T>): ObjectListObserverResponse<T> => {
         const objectSet = new ObjectSet(this.#client, type, where);
         const objectList = new ObjectList(objectSet, orderBy);
+        const key = JSON.stringify(objectList);
 
-        const existingObserver = this.#objectListObservers.get(JSON.stringify(objectList)) as
-            | ObjectListObserver<T>
-            | undefined;
-        if (existingObserver) {
-            return {
-                subscribe: existingObserver.subscribe,
-                getSnapshot: existingObserver.getSnapshot,
-                loadMore: (...args) => void existingObserver.loadMore(...args),
-                refresh: (...args) => void existingObserver.refresh(...args),
-            };
-        }
+        const activeObserver = this.#objectListObservers.get(key) as ObjectListObserver<T> | undefined;
+        if (activeObserver) return activeObserver;
 
-        const observer = new ObjectListObserver(objectList, (observation) => {
-            this.#objectListObservers.forEach((otherObserver) => {
-                if (otherObserver !== observer) {
-                    otherObserver.processObservation(observation);
-                }
-            });
-        });
-        this.#objectListObservers.set(
-            JSON.stringify(objectList),
-            observer as ObjectListObserver<ObjectOrInterfaceDefinition>
+        const bufferedObserver = this.#objectListReleaseBuffer.get(key) as ObjectListObserver<T> | undefined;
+        if (bufferedObserver) return bufferedObserver;
+
+        const newObserver = new ObjectListObserver(
+            objectList,
+            (observation) => {
+                this.#objectListObservers.forEach((otherObserver) => {
+                    if (otherObserver !== newObserver) {
+                        otherObserver.processObservation(observation);
+                    }
+                });
+            },
+            () => {
+                this.#objectListObservers.set(
+                    key,
+                    newObserver as ObjectListObserver<ObjectOrInterfaceDefinition>
+                );
+                this.#objectListReleaseBuffer.delete(key);
+            },
+            () => {
+                this.#objectListObservers.delete(key);
+                this.#objectListReleaseBuffer.set(
+                    key,
+                    newObserver as ObjectListObserver<ObjectOrInterfaceDefinition>
+                );
+            }
         );
 
-        return observer;
+        this.#objectListReleaseBuffer.set(
+            key,
+            newObserver as ObjectListObserver<ObjectOrInterfaceDefinition>
+        );
+
+        return newObserver;
     };
 
     liveObjectSet = <T extends ObjectOrInterfaceDefinition>({
@@ -94,23 +124,45 @@ export class OntologyStore {
         where,
     }: LiveObjectSetObserverRequest<T>): LiveObjectSetObserverResponse => {
         const objectSet = new ObjectSet(this.#client, type, where);
+        const key = JSON.stringify(objectSet);
 
-        const existingObserver = this.#liveObjectSetObservers.get(JSON.stringify(objectSet));
-        if (existingObserver) {
-            return existingObserver;
-        }
+        const activeObserver = this.#liveObjectSetObservers.get(key) as LiveObjectSetObserver<T> | undefined;
+        if (activeObserver) return activeObserver;
 
-        const observer = new LiveObjectSetObserver(objectSet, (observation) => {
-            this.#objectListObservers.forEach((otherObserver) =>
-                otherObserver.processObservation(observation)
-            );
-        });
-        this.#liveObjectSetObservers.set(
-            JSON.stringify(objectSet),
-            observer as LiveObjectSetObserver<ObjectOrInterfaceDefinition>
+        const bufferedObserver = this.#liveObjectSetReleaseBuffer.get(key) as
+            | LiveObjectSetObserver<T>
+            | undefined;
+        if (bufferedObserver) return bufferedObserver;
+
+        const newObserver = new LiveObjectSetObserver(
+            objectSet,
+            (observation) => {
+                this.#objectListObservers.forEach((otherObserver) =>
+                    otherObserver.processObservation(observation)
+                );
+            },
+            () => {
+                this.#liveObjectSetObservers.set(
+                    key,
+                    newObserver as LiveObjectSetObserver<ObjectOrInterfaceDefinition>
+                );
+                this.#liveObjectSetReleaseBuffer.delete(key);
+            },
+            () => {
+                this.#liveObjectSetObservers.delete(key);
+                this.#liveObjectSetReleaseBuffer.set(
+                    key,
+                    newObserver as LiveObjectSetObserver<ObjectOrInterfaceDefinition>
+                );
+            }
         );
 
-        return observer;
+        this.#liveObjectSetReleaseBuffer.set(
+            key,
+            newObserver as LiveObjectSetObserver<ObjectOrInterfaceDefinition>
+        );
+
+        return newObserver;
     };
 
     get applyAction(): (...args: Parameters<ActionsObserver["applyAction"]>) => void {

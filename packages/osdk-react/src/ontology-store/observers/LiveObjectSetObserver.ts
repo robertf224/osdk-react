@@ -9,23 +9,40 @@ export type LiveObjectSetObserverSnapshot = { status: "connecting" | "connected"
 export class LiveObjectSetObserver<T extends ObjectOrInterfaceDefinition> {
     #objectSet: ObjectSet<T>;
     #broadcastObservation: (observation: OntologyObservation) => void;
+    #onFirstSubscribe: () => void;
+    #onLastUnsubscribe: () => void;
 
     #subscribers: Set<() => void>;
     #watcherSubscription: { unsubscribe: () => void } | undefined;
     #state: LiveObjectSetObserverSnapshot | undefined;
 
-    constructor(objectSet: ObjectSet<T>, broadcastObservation: (observation: OntologyObservation) => void) {
+    constructor(
+        objectSet: ObjectSet<T>,
+        broadcastObservation: (observation: OntologyObservation) => void,
+        onFirstSubscribe: () => void,
+        onLastUnsubscribe: () => void
+    ) {
         // We only allow live object sets with no filters for now so that we can understand when objects are
         // actually deleted. This should be upstreamed into OSW, and then we can remove this invariant.
         invariant(!objectSet.hasFilter, "Filters are not currently allowed for live Object Sets.");
         this.#objectSet = objectSet;
         this.#broadcastObservation = broadcastObservation;
         this.#subscribers = new Set();
+        this.#onFirstSubscribe = onFirstSubscribe;
+        this.#onLastUnsubscribe = onLastUnsubscribe;
     }
 
     subscribe = (callback: () => void) => {
         this.#subscribers.add(callback);
-        return () => this.#subscribers.delete(callback);
+        if (this.#subscribers.size === 1) {
+            this.#onFirstSubscribe();
+        }
+        return () => {
+            this.#subscribers.delete(callback);
+            if (this.#subscribers.size === 0) {
+                this.#onLastUnsubscribe();
+            }
+        };
     };
 
     #notifySubscribers = () => {
