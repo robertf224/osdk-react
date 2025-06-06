@@ -15,6 +15,7 @@
         "strict": true,
         "allowUnreachableCode": false,
         "incremental": true,
+        "skipLibCheck": true,
 
         "lib": ["ES2022", "DOM", "DOM.Iterable"],
         "target": "ES2022",

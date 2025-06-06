@@ -17,19 +17,36 @@ type ObjectListObserverState<T extends ObjectOrInterfaceDefinition> = AsyncValue
 export class ObjectListObserver<T extends ObjectOrInterfaceDefinition> {
     #objectList: ObjectList<T>;
     #broadcastObservation: (observation: OntologyObservation) => void;
+    #onFirstSubscribe: () => void;
+    #onLastUnsubscribe: () => void;
 
     #subscribers: Set<() => void>;
     #state: ObjectListObserverState<T> | undefined;
 
-    constructor(objectList: ObjectList<T>, broadcastObservation: (observation: OntologyObservation) => void) {
+    constructor(
+        objectList: ObjectList<T>,
+        broadcastObservation: (observation: OntologyObservation) => void,
+        onFirstSubscribe: () => void,
+        onLastUnsubscribe: () => void
+    ) {
         this.#objectList = objectList;
         this.#broadcastObservation = broadcastObservation;
         this.#subscribers = new Set();
+        this.#onFirstSubscribe = onFirstSubscribe;
+        this.#onLastUnsubscribe = onLastUnsubscribe;
     }
 
     subscribe = (callback: () => void) => {
         this.#subscribers.add(callback);
-        return () => this.#subscribers.delete(callback);
+        if (this.#subscribers.size === 1) {
+            this.#onFirstSubscribe();
+        }
+        return () => {
+            this.#subscribers.delete(callback);
+            if (this.#subscribers.size === 0) {
+                this.#onLastUnsubscribe();
+            }
+        };
     };
 
     #notifySubscribers = () => {
