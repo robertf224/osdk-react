@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.4.2
+
+### Patch Changes
+
+- c596d95: bugfix
+
 ## 0.4.1
 
 ### Patch Changes
