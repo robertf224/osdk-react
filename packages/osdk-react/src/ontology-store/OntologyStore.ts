@@ -89,11 +89,13 @@ export class OntologyStore {
         const newObserver = new ObjectListObserver(
             objectList,
             (observation) => {
-                this.#objectListObservers.forEach((otherObserver) => {
-                    if (otherObserver !== newObserver) {
-                        otherObserver.processObservation(observation);
+                [...this.#objectListObservers.values(), ...this.#objectListReleaseBuffer.values()].forEach(
+                    (otherObserver) => {
+                        if (otherObserver !== newObserver) {
+                            otherObserver.processObservation(observation);
+                        }
                     }
-                });
+                );
             },
             () => {
                 this.#objectListObservers.set(
@@ -137,8 +139,8 @@ export class OntologyStore {
         const newObserver = new LiveObjectSetObserver(
             objectSet,
             (observation) => {
-                this.#objectListObservers.forEach((otherObserver) =>
-                    otherObserver.processObservation(observation)
+                [...this.#objectListObservers.values(), ...this.#objectListReleaseBuffer.values()].forEach(
+                    (otherObserver) => otherObserver.processObservation(observation)
                 );
             },
             () => {
