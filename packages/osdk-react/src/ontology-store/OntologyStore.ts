@@ -52,8 +52,8 @@ export class OntologyStore {
         this.#objectListReleaseBuffer = new LruMap(20);
         this.#liveObjectSetReleaseBuffer = new LruMap(20);
         this.#actionsObserver = new ActionsObserver(client, (observation) => {
-            this.#objectListObservers.forEach((otherObserver) =>
-                otherObserver.processObservation(observation)
+            [...this.#objectListObservers.values(), ...this.#objectListReleaseBuffer.values()].forEach(
+                (otherObserver) => otherObserver.processObservation(observation)
             );
         });
     }

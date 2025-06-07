@@ -1,10 +1,18 @@
-import { useObject } from "@bobbyfidz/osdk-react";
-import { Task } from "@gtd/sdk";
-import { useParams, Link } from "react-router";
+import { useAction, useObject } from "@bobbyfidz/osdk-react";
+import { Task, deleteTask } from "@gtd/sdk";
+import { useParams, Link, useNavigate } from "react-router";
 
 function TaskPage() {
     const { taskId } = useParams();
+    const navigate = useNavigate();
     const [task] = useObject(Task, { id: taskId! });
+
+    const [applyDeleteTask, isDeleting] = useAction(deleteTask);
+    const handleDelete = () => {
+        if (window.confirm("Are you sure you want to delete this task?")) {
+            applyDeleteTask({ Task: task! }, { onCompleted: () => navigate("/") });
+        }
+    };
 
     if (!task) {
         return <div className="flex h-screen items-center justify-center">Task not found</div>;
@@ -38,6 +46,15 @@ function TaskPage() {
                             </p>
                         </div>
                     )}
+                    <div className="mt-6">
+                        <button
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+                        >
+                            {isDeleting ? "Deleting..." : "Delete Task"}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
