@@ -3,7 +3,6 @@
 import { Client } from "@osdk/client";
 import React from "react";
 import { OsdkContext } from "./OsdkContext";
-import { OntologyStore } from "./ontology-store";
 
 export interface OsdkEnvironmentProviderProps {
     client: Client;
@@ -12,7 +11,7 @@ export interface OsdkEnvironmentProviderProps {
 
 export const OsdkEnvironmentProvider: React.FC<OsdkEnvironmentProviderProps> = ({ client, children }) => {
     const osdkContext: OsdkContext = React.useMemo(() => {
-        return { store: new OntologyStore(client) };
+        return { client };
     }, [client]);
     return <OsdkContext.Provider value={osdkContext}>{children}</OsdkContext.Provider>;
 };

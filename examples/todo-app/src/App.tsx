@@ -5,24 +5,19 @@ import TaskItem from "./TaskItem";
 import FlipMove from "react-flip-move";
 
 function App() {
-    const {
-        objects: tasks,
-        hasMore,
-        isLoadingMore,
-        loadMore,
-    } = useObjects(Task, {
+    const [tasks, { hasNextPage, isFetchingNextPage, fetchNextPage }] = useObjects(Task, {
         $orderBy: { completedAt: "asc", createdAt: "desc" },
         $pageSize: 10,
     });
     useLiveObjectSet(Task);
 
-    const [addTask, isPending] = useAction(createTask);
+    const { mutate: addTask, isPending } = useAction(createTask);
     const [newTaskTitle, setNewTaskTitle] = React.useState("");
 
     const handleAddTask = () => {
         if (!newTaskTitle.trim()) return;
         // Add the new task with the title
-        addTask({ title: newTaskTitle }, { onCompleted: () => setNewTaskTitle("") });
+        addTask({ title: newTaskTitle }, { onSuccess: () => setNewTaskTitle("") });
     };
 
     return (
@@ -57,14 +52,14 @@ function App() {
                 ) : (
                     <p className="text-center text-gray-500">No tasks yet</p>
                 )}
-                {hasMore && (
+                {hasNextPage && (
                     <div className="mt-4 flex items-center justify-center">
                         <button
-                            onClick={() => loadMore()}
-                            disabled={isLoadingMore}
+                            onClick={() => fetchNextPage()}
+                            disabled={isFetchingNextPage}
                             className="flex items-center rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 disabled:opacity-50"
                         >
-                            {isLoadingMore && (
+                            {isFetchingNextPage && (
                                 <svg
                                     className="mr-2 inline-block h-5 w-5 animate-spin"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +81,7 @@ function App() {
                                     ></path>
                                 </svg>
                             )}
-                            {isLoadingMore ? "Loading..." : "Load more"}
+                            {isFetchingNextPage ? "Loading..." : "Load more"}
                         </button>
                     </div>
                 )}

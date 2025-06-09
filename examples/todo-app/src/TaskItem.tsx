@@ -9,7 +9,7 @@ interface TaskItemProps {
 }
 
 function TaskItem({ task }: TaskItemProps) {
-    const [updateTask, isUpdating] = useAction(editTask);
+    const { mutate: updateTask, isPending: isUpdating } = useAction(editTask);
 
     const handleToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
