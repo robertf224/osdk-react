@@ -1,5 +1,12 @@
 # @bobbyfidz/todo-app
 
+## 0.0.13
+
+### Patch Changes
+
+- Updated dependencies [4097ab8]
+    - @bobbyfidz/osdk-react@0.5.0
+
 ## 0.0.12
 
 ### Patch Changes
