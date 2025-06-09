@@ -36,8 +36,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/osdk-react
       '@gtd/sdk':
-        specifier: file:./@gtd_sdk-0.3.0.tgz
-        version: file:examples/todo-app/@gtd_sdk-0.3.0.tgz(@osdk/client@2.3.0-beta.3)
+        specifier: file:./@gtd_sdk-0.5.0.tgz
+        version: file:examples/todo-app/@gtd_sdk-0.5.0.tgz(@osdk/client@2.3.0-beta.3)
       '@osdk/client':
         specifier: ^2.3.0-beta.2
         version: 2.3.0-beta.3
@@ -108,9 +108,15 @@ importers:
       '@osdk/client':
         specifier: ^2.3.0-beta.2
         version: 2.3.0-beta.3
+      '@osdk/foundry.admin':
+        specifier: ^2.22.0
+        version: 2.22.0
       '@tanstack/react-query':
         specifier: ^5.80.6
         version: 5.80.6(react@19.0.0)
+      '@yornaath/batshit':
+        specifier: ^0.10.1
+        version: 0.10.1
       tiny-invariant:
         specifier: ^1.3.3
         version: 1.3.3
@@ -529,11 +535,11 @@ packages:
     resolution: {integrity: sha512-lB05FkqEdUg2AA0xEbUz0SnkXT1LcCTa438W4IWTUh4hdOnVbQyOJ81OrDXsJk/LSiJHubgGEFoR5EHq1NsH1A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.3.0.tgz':
-    resolution: {integrity: sha512-E20tBSj/eYwcfKuuLSkwVlJjcf1UdKJ02Z1fusCscCVjJCz+h+0BPA7lEMBlxrfKyDqWwwH24EkoWHCZPJFuHw==, tarball: file:examples/todo-app/@gtd_sdk-0.3.0.tgz}
-    version: 0.3.0
+  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.5.0.tgz':
+    resolution: {integrity: sha512-TELD6gggMeIGPX1tK5ZYGlihfcV/JmZ7565jEZBMh89JZr4PLFfTxKey4BDvmVKBtT7aTb5QMvH2C7T7Kmajhg==, tarball: file:examples/todo-app/@gtd_sdk-0.5.0.tgz}
+    version: 0.5.0
     peerDependencies:
-      '@osdk/client': ^2.0.12
+      '@osdk/client': ^2.3.0-beta.2
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -576,9 +582,6 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@osdk/api@2.0.13':
-    resolution: {integrity: sha512-cffK7+4d6ZrI7kfwIxtVIA24JogBbL2yKHXfbhrfyyWvq9zLW/FZBPkFtD9IyBgFNzH7sj9W9aTaqPtJkYrD1w==}
-
   '@osdk/api@2.3.0-beta.3':
     resolution: {integrity: sha512-WbaeGIdE4x0zi+haJFTCo7pMvBPQ67OsROGJ4EvpYPbvpONXGv/sJvRIJRkkU5xDavvRSgGtfMeyL+dq2lhGSA==}
 
@@ -588,11 +591,20 @@ packages:
   '@osdk/client@2.3.0-beta.3':
     resolution: {integrity: sha512-ubsGHrg10I6eWU+HYyvN1m+KiHoIwa4ezu3cDdE/sNQaa+3V4zT0LeSkm4jQuiPZJM601otAFsX0h/9z6zHI1w==}
 
+  '@osdk/foundry.admin@2.22.0':
+    resolution: {integrity: sha512-QopQ8hmI9aLSp8WmvIydl/5yf45o9a8LS7kftbTx5XITAqRHPp3+3wZUkvA+/3JLdrMkxRdIC4HXlC5iEWgaLg==}
+
   '@osdk/foundry.core@2.20.0':
     resolution: {integrity: sha512-pvvqWysuB+ty4DrUYhnV/ttTnYS0cORY8zuDIWTACgN/4UlcilSe6dv4KWaWG3hKzwuc7ld7gCUzAuxRe86vfg==}
 
+  '@osdk/foundry.core@2.22.0':
+    resolution: {integrity: sha512-vFsAfyGsmNVbGkRe7ukYEC8Eh4nWNRSaS1Dpwgr1rpRH9iIPY6vTXfFAR9c5OPOTsZNAxuKT9BBKANvuDymXLg==}
+
   '@osdk/foundry.geo@2.20.0':
     resolution: {integrity: sha512-QldTGlyOuNXMXaPP9iGIuSVuwCmN4ixI4AcXnnvOWlz/gTVGGgHBkZYNW6r829TC49ZL/+HISeuI2hVkTlSk0g==}
+
+  '@osdk/foundry.geo@2.22.0':
+    resolution: {integrity: sha512-itwZwFUUCCu4Zl1+I1bVKhdWiGmpLtGnmLEZUfq6JfxAhoypBDO9i5TY5RIXmYf7ow4iJuNPO39FbQOf82GgYQ==}
 
   '@osdk/foundry.ontologies@2.20.0':
     resolution: {integrity: sha512-53YsRgg5IC8O6sGI6zANeVFxgWKrV0MmVDEvhb0mGeg6i2pYbpazQsJwuWsQ5k9OhJdMaU0Lqh2Rsg9fFNJ1Rg==}
@@ -991,6 +1003,12 @@ packages:
   '@wry/trie@0.5.0':
     resolution: {integrity: sha512-FNoYzHawTMk/6KMQoEG5O4PuioX19UbwdQKF44yw0nLfOypfQdjtfZzo/UIJWAJ23sNIFbD1Ug9lbaDGMwbqQA==}
     engines: {node: '>=8'}
+
+  '@yornaath/batshit-devtools@1.7.1':
+    resolution: {integrity: sha512-AyttV1Njj5ug+XqEWY1smV45dTWMlWKtj1B8jcFYgBKUFyUlF/qEhD+iP1E5UaRYW6hQRYD9T2WNDwFTrOMWzQ==}
+
+  '@yornaath/batshit@0.10.1':
+    resolution: {integrity: sha512-WGZ1WNoiVN6CLf28O73+6SCf+2lUn4U7TLGM9f4zOad0pn9mdoXIq8cwu3Kpf7N2OTYgWGK4eQPTflwFlduDGA==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2947,9 +2965,8 @@ snapshots:
       '@eslint/core': 0.10.0
       levn: 0.4.1
 
-  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.3.0.tgz(@osdk/client@2.3.0-beta.3)':
+  '@gtd/sdk@file:examples/todo-app/@gtd_sdk-0.5.0.tgz(@osdk/client@2.3.0-beta.3)':
     dependencies:
-      '@osdk/api': 2.0.13
       '@osdk/client': 2.3.0-beta.3
 
   '@humanfs/core@0.19.1': {}
@@ -2995,13 +3012,6 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.18.0
 
-  '@osdk/api@2.0.13':
-    dependencies:
-      '@types/geojson': 7946.0.16
-      fetch-retry: 6.0.0
-      tiny-invariant: 1.3.3
-      type-fest: 4.33.0
-
   '@osdk/api@2.3.0-beta.3':
     dependencies:
       '@types/geojson': 7946.0.16
@@ -3043,6 +3053,13 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@osdk/foundry.admin@2.22.0':
+    dependencies:
+      '@osdk/foundry.core': 2.22.0
+      '@osdk/shared.client': 1.0.1
+      '@osdk/shared.client2': 1.0.0
+      '@osdk/shared.net.platformapi': 1.3.0
+
   '@osdk/foundry.core@2.20.0':
     dependencies:
       '@osdk/foundry.geo': 2.20.0
@@ -3050,7 +3067,20 @@ snapshots:
       '@osdk/shared.client2': 1.0.0
       '@osdk/shared.net.platformapi': 1.3.0
 
+  '@osdk/foundry.core@2.22.0':
+    dependencies:
+      '@osdk/foundry.geo': 2.22.0
+      '@osdk/shared.client': 1.0.1
+      '@osdk/shared.client2': 1.0.0
+      '@osdk/shared.net.platformapi': 1.3.0
+
   '@osdk/foundry.geo@2.20.0':
+    dependencies:
+      '@osdk/shared.client': 1.0.1
+      '@osdk/shared.client2': 1.0.0
+      '@osdk/shared.net.platformapi': 1.3.0
+
+  '@osdk/foundry.geo@2.22.0':
     dependencies:
       '@osdk/shared.client': 1.0.1
       '@osdk/shared.client2': 1.0.0
@@ -3426,6 +3456,12 @@ snapshots:
   '@wry/trie@0.5.0':
     dependencies:
       tslib: 2.8.1
+
+  '@yornaath/batshit-devtools@1.7.1': {}
+
+  '@yornaath/batshit@0.10.1':
+    dependencies:
+      '@yornaath/batshit-devtools': 1.7.1
 
   acorn-jsx@5.3.2(acorn@8.14.0):
     dependencies:

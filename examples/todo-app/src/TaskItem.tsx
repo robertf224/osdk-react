@@ -3,6 +3,7 @@ import { useAction } from "@bobbyfidz/osdk-react";
 import { editTask, Task } from "@gtd/sdk";
 import { Osdk } from "@osdk/client";
 import { Link } from "react-router";
+import { UserAvatar } from "./UserAvatar";
 
 interface TaskItemProps {
     task: Osdk<Task>;
@@ -27,20 +28,24 @@ function TaskItem({ task }: TaskItemProps) {
             to={`/task/${task.id}`}
             className="flex cursor-pointer items-center justify-between rounded-lg bg-white p-4 shadow hover:bg-gray-50"
         >
-            <div className="flex items-center" onClick={(e) => e.preventDefault()}>
-                <input
-                    type="checkbox"
-                    checked={!!task.completedAt}
-                    onChange={handleToggle}
-                    onClick={(e) => e.stopPropagation()}
-                    disabled={isUpdating}
-                    className="h-5 w-5 rounded border-gray-300 text-blue-600"
-                />
-                <span
-                    className={`ml-3 text-lg ${task.completedAt ? "text-gray-500 line-through" : "text-gray-900"}`}
-                >
-                    {task.title}
-                </span>
+            <div className="flex w-full items-center justify-between">
+                <div className="flex items-center">
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <input
+                            type="checkbox"
+                            checked={!!task.completedAt}
+                            onChange={handleToggle}
+                            disabled={isUpdating}
+                            className="h-5 w-5 rounded border-gray-300 text-blue-600"
+                        />
+                    </div>
+                    <span
+                        className={`ml-3 text-lg ${task.completedAt ? "text-gray-500 line-through" : "text-gray-900"}`}
+                    >
+                        {task.title}
+                    </span>
+                </div>
+                {task.createdBy ? <UserAvatar userId={task.createdBy} /> : null}
             </div>
             {isUpdating && (
                 <svg

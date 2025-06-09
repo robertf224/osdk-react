@@ -8,7 +8,7 @@ const redirectUrl = import.meta.env.VITE_FOUNDRY_REDIRECT_URL;
 checkEnv(url, "VITE_FOUNDRY_API_URL");
 checkEnv(clientId, "VITE_FOUNDRY_CLIENT_ID");
 checkEnv(redirectUrl, "VITE_FOUNDRY_REDIRECT_URL");
-const scopes = ["api:ontologies-read", "api:ontologies-write"];
+const scopes = ["api:use-ontologies-read", "api:use-ontologies-write", "api:use-admin-read"];
 
 function checkEnv(value: string | undefined, name: string): asserts value is string {
     if (value == null) {

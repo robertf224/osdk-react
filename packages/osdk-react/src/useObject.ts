@@ -12,11 +12,11 @@ import { OntologyObservation } from "./ontology";
 
 const QUERY_KEY_PREFIX = ["osdk", "object"];
 
-export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | undefined>(
+export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
     type: T,
     primaryKey: PrimaryKeyType<T>,
     queryOpts?: Omit<
-        UseSuspenseQueryOptions<Osdk<T> | undefined, Error, R>,
+        UseSuspenseQueryOptions<Osdk<T> | null, Error, R>,
         "queryKey" | "queryFn" | "initialData" | "initialDataUpdatedAt"
     >
 ): [R, Omit<UseSuspenseQueryResult<R>, "data">] {
@@ -30,7 +30,7 @@ export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | undefine
                     [objectType.primaryKeyApiName]: primaryKey,
                 } as WhereClause<T>)
                 .fetchPage({ $pageSize: 1 });
-            return result.data[0];
+            return result.data[0] ?? null;
         },
         queryKey: [...QUERY_KEY_PREFIX, type.apiName, primaryKey],
     });
@@ -42,6 +42,6 @@ export function updateObjectQueries(queryClient: QueryClient, observation: Ontol
         queryClient.setQueryData([...QUERY_KEY_PREFIX, object.objectType, object.primaryKey], object);
     });
     observation.deletedObjects.forEach((object) => {
-        queryClient.setQueryData([...QUERY_KEY_PREFIX, object.objectType, object.primaryKey], undefined);
+        queryClient.setQueryData([...QUERY_KEY_PREFIX, object.objectType, object.primaryKey], null);
     });
 }
