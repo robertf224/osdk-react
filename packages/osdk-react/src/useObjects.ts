@@ -1,17 +1,18 @@
 "use client";
 
-import type { ObjectOrInterfaceDefinition, Osdk, WhereClause } from "@osdk/api";
-import { ObjectSetOrderBy } from "./ontology-store";
+import type { ObjectOrInterfaceDefinition, Osdk, PageResult, PrimaryKeyType, WhereClause } from "@osdk/api";
 import { useOsdkContext } from "./OsdkContext";
-import React from "react";
+import {
+    InfiniteData,
+    QueryClient,
+    useSuspenseInfiniteQuery,
+    UseSuspenseInfiniteQueryOptions,
+    UseSuspenseInfiniteQueryResult,
+} from "@tanstack/react-query";
+import { ObjectSetOrderBy, OntologyObservation, ObjectSet, ObjectList } from "./ontology";
+import { SortedObjectArray } from "./utils";
 
-export interface UseObjects<T extends ObjectOrInterfaceDefinition> {
-    objects: Osdk<T>[];
-    hasMore: boolean;
-    isLoadingMore: boolean;
-    loadMore: (pageSize?: number) => void;
-    refresh: () => void;
-}
+const QUERY_KEY_PREFIX = ["osdk", "objects"];
 
 export function useObjects<T extends ObjectOrInterfaceDefinition>(
     type: T,
@@ -19,32 +20,113 @@ export function useObjects<T extends ObjectOrInterfaceDefinition>(
         $where?: WhereClause<T>;
         $orderBy: ObjectSetOrderBy<T>;
         $pageSize?: number;
-    }
-): UseObjects<T> {
-    const { store } = useOsdkContext();
-    const { $where, $orderBy, $pageSize } = opts;
-
-    const observer = store.objectList({ type, where: $where, orderBy: $orderBy });
-    let snapshot = React.useSyncExternalStore(observer.subscribe, observer.getSnapshot);
-
-    if (!snapshot) {
-        observer.refresh($pageSize);
-        snapshot = observer.getSnapshot()!;
-    }
-
-    if (snapshot.type === "loading") {
-        // eslint-disable-next-line @typescript-eslint/only-throw-error
-        throw snapshot.promise;
-    } else if (snapshot.type === "error") {
-        throw snapshot.error;
-    }
-
-    const { hasMore, objects } = snapshot.value;
-    return {
-        hasMore,
-        objects,
-        isLoadingMore: snapshot.type === "reloading",
-        loadMore: (pageSize) => observer.loadMore(pageSize ?? $pageSize),
-        refresh: observer.refresh,
+    },
+    queryOpts?: Omit<
+        UseSuspenseInfiniteQueryOptions,
+        | "queryKey"
+        | "queryFn"
+        | "initialData"
+        | "initialDataUpdatedAt"
+        | "initialPageParam"
+        | "getNextPageParam"
+        | "getPreviousPageParam"
+        | "select"
+    >
+): [
+    Osdk<T>[],
+    Omit<
+        UseSuspenseInfiniteQueryResult,
+        | "data"
+        | "fetchPreviousPage"
+        | "isFetchingPreviousPage"
+        | "hasPreviousPage"
+        | "isFetchPreviousPageError"
+    >,
+] {
+    const { client } = useOsdkContext();
+    const objectList: ObjectList<T> = {
+        objectSet: { type, filter: opts.$where },
+        orderBy: opts.$orderBy,
     };
+    const { data, ...rest } = useSuspenseInfiniteQuery({
+        ...queryOpts,
+        queryFn: ({ pageParam: $nextPageToken }) => {
+            const objectSet = ObjectSet.toOSDK(objectList.objectSet, client);
+            return objectSet.fetchPage({
+                $orderBy: objectList.orderBy,
+                $pageSize: opts.$pageSize,
+                $nextPageToken,
+            });
+        },
+        queryKey: [...QUERY_KEY_PREFIX, objectList],
+        initialPageParam: undefined,
+        getNextPageParam: (lastPage) => lastPage.nextPageToken,
+    } as UseSuspenseInfiniteQueryOptions<
+        PageResult<Osdk<T>>,
+        Error,
+        InfiniteData<PageResult<Osdk<T>>>,
+        readonly unknown[],
+        string | undefined
+    >);
+
+    return [data.pages.flatMap((page) => page.data), rest];
+}
+
+export function updateObjectsQueries(queryClient: QueryClient, observation: OntologyObservation) {
+    const queries = queryClient.getQueryCache().findAll({ queryKey: QUERY_KEY_PREFIX });
+    queries.forEach((query) => {
+        const [, , objectList] = query.queryKey as [
+            "osdk",
+            "objects",
+            ObjectList<ObjectOrInterfaceDefinition>,
+        ];
+
+        if (query.state.fetchStatus === "fetching") {
+            return;
+        }
+
+        const queryData = query.state.data as InfiniteData<PageResult<Osdk<ObjectOrInterfaceDefinition>>>;
+        const flattenedData = new SortedObjectArray(
+            queryData.pages.flatMap((page) => page.data),
+            (object) => object.$primaryKey,
+            ObjectList.getComparator(objectList)
+        );
+        const hasMore = queryData.pages[queryData.pages.length - 1]?.nextPageToken !== undefined;
+        let dirty = false;
+        for (const object of observation.knownObjects) {
+            const normalizedObject = ObjectSet.normalize(objectList.objectSet, object);
+            if (normalizedObject) {
+                const deleted = flattenedData.delete(normalizedObject.$primaryKey);
+                if (deleted) {
+                    dirty = true;
+                }
+                if (ObjectSet.contains(objectList.objectSet, normalizedObject)) {
+                    const insertionIndex = flattenedData.findInsertionIndex(normalizedObject);
+                    // We only can determine the correct position in this case if there's no more data to load.
+                    if (insertionIndex === flattenedData.data.length && hasMore) {
+                        continue;
+                    }
+                    flattenedData.add(normalizedObject);
+                    dirty = true;
+                }
+            }
+        }
+        for (const object of observation.deletedObjects) {
+            const deleted = flattenedData.delete(
+                object.primaryKey as PrimaryKeyType<ObjectOrInterfaceDefinition>
+            );
+            if (deleted) {
+                dirty = true;
+            }
+        }
+        if (dirty) {
+            query.setData({
+                ...queryData,
+                pages: queryData.pages.map((page, pageIndex) => ({
+                    ...page,
+                    data: pageIndex === 0 ? flattenedData.data : [],
+                })),
+            });
+        }
+    });
 }

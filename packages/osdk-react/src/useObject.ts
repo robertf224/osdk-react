@@ -1,49 +1,47 @@
 "use client";
 
-import type { Osdk, PrimaryKeyType, CompileTimeMetadata, ObjectTypeDefinition, WhereClause } from "@osdk/api";
+import type { Osdk, PrimaryKeyType, ObjectTypeDefinition, WhereClause, ObjectSet } from "@osdk/api";
 import { useOsdkContext } from "./OsdkContext";
-import React from "react";
-import { ObjectSetOrderBy } from "./ontology-store/ObjectList";
+import {
+    QueryClient,
+    UseSuspenseQueryOptions,
+    UseSuspenseQueryResult,
+    useSuspenseQuery,
+} from "@tanstack/react-query";
+import { OntologyObservation } from "./ontology";
 
-export type UseObject<T extends ObjectTypeDefinition> = [object: Osdk<T> | undefined, refresh: () => void];
+const QUERY_KEY_PREFIX = ["osdk", "object"];
 
-export function useObject<T extends ObjectTypeDefinition>(
+export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
     type: T,
-    $where: {
-        [primaryKey in CompileTimeMetadata<T>["primaryKeyApiName"]]: PrimaryKeyType<T>;
-    }
-): UseObject<T> {
-    const { store } = useOsdkContext();
-
-    const primaryKeyProperty = Object.keys($where)[0]!;
-    const primaryKey = $where[primaryKeyProperty as CompileTimeMetadata<T>["primaryKeyApiName"]];
-
-    const observer = store.objectList({
-        type,
-        where: $where as WhereClause<T>,
-        orderBy: {
-            [primaryKeyProperty]: "asc",
-        } as ObjectSetOrderBy<T>,
+    primaryKey: PrimaryKeyType<T>,
+    queryOpts?: Omit<
+        UseSuspenseQueryOptions<Osdk<T> | null, Error, R>,
+        "queryKey" | "queryFn" | "initialData" | "initialDataUpdatedAt"
+    >
+): [R, Omit<UseSuspenseQueryResult<R>, "data">] {
+    const { client } = useOsdkContext();
+    const { data, ...rest } = useSuspenseQuery({
+        ...queryOpts,
+        queryFn: async () => {
+            const objectType = await client.fetchMetadata(type);
+            const result = await (client(type) as ObjectSet<T>)
+                .where({
+                    [objectType.primaryKeyApiName]: primaryKey,
+                } as WhereClause<T>)
+                .fetchPage({ $pageSize: 1 });
+            return result.data[0] ?? null;
+        },
+        queryKey: [...QUERY_KEY_PREFIX, type.apiName, primaryKey],
     });
-    let snapshot = React.useSyncExternalStore(observer.subscribe, observer.getSnapshot);
+    return [data, rest];
+}
 
-    if (!snapshot) {
-        observer.refresh(1);
-        snapshot = observer.getSnapshot()!;
-    }
-
-    const initialValue = store.lookup(type, primaryKey);
-    if (initialValue) {
-        return [initialValue, observer.refresh];
-    }
-
-    if (snapshot.type === "loading") {
-        // eslint-disable-next-line @typescript-eslint/only-throw-error
-        throw snapshot.promise;
-    } else if (snapshot.type === "error") {
-        throw snapshot.error;
-    }
-
-    const { objects } = snapshot.value;
-    return [objects[0], observer.refresh];
+export function updateObjectQueries(queryClient: QueryClient, observation: OntologyObservation) {
+    observation.knownObjects.forEach((object) => {
+        queryClient.setQueryData([...QUERY_KEY_PREFIX, object.objectType, object.primaryKey], object);
+    });
+    observation.deletedObjects.forEach((object) => {
+        queryClient.setQueryData([...QUERY_KEY_PREFIX, object.objectType, object.primaryKey], null);
+    });
 }

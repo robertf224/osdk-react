@@ -9,6 +9,9 @@ import AuthCallback from "./AuthCallback";
 import TaskPage from "./TaskPage";
 import "./globals.css";
 import { client } from "./client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter(
     [
@@ -34,9 +37,11 @@ const router = createBrowserRouter(
 
 // TODO: re-add StrictMode
 createRoot(document.getElementById("root")!).render(
-    <OsdkEnvironmentProvider client={client}>
-        <Suspense fallback="Loading...">
-            <RouterProvider router={router} />
-        </Suspense>
-    </OsdkEnvironmentProvider>
+    <QueryClientProvider client={queryClient}>
+        <OsdkEnvironmentProvider client={client}>
+            <Suspense fallback="Loading...">
+                <RouterProvider router={router} />
+            </Suspense>
+        </OsdkEnvironmentProvider>
+    </QueryClientProvider>
 );

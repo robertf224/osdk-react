@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { OntologyStore } from "./ontology-store";
+import { Client } from "@osdk/client";
 
 export interface OsdkContext {
-    store: OntologyStore;
+    client: Client;
 }
 
 export const OsdkContext = React.createContext<OsdkContext | undefined>(undefined);
