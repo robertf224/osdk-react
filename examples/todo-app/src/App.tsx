@@ -3,6 +3,7 @@ import { createTask, Task } from "@gtd/sdk";
 import React from "react";
 import TaskItem from "./TaskItem";
 import FlipMove from "react-flip-move";
+import ChatWindow from "./ChatWindow";
 
 function App() {
     const [tasks, { hasNextPage, isFetchingNextPage, fetchNextPage }] = useObjects(Task, {
@@ -86,6 +87,10 @@ function App() {
                     </div>
                 )}
             </div>
+            <ChatWindow
+                agentRid="ri.aip-agents..agent.75e6c53f-7bc8-4e90-85cf-c7705e6d19f4"
+                sessionRid="ri.aip-agents..session.dd23d3a1-c798-4031-9756-b0ec289495e3"
+            />
         </div>
     );
 }
