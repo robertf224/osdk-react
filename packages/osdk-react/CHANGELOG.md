@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.5.0
+
+### Minor Changes
+
+- 4097ab8: port to react-query
+
 ## 0.4.2
 
 ### Patch Changes
