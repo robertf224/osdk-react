@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.5.1
+
+### Patch Changes
+
+- 157821f: fix exports
+
 ## 0.5.0
 
 ### Minor Changes
