@@ -1,6 +1,6 @@
 import type { ActionDefinition, ActionEditResponse } from "@osdk/api";
 import { useOsdkContext } from "./OsdkContext";
-import { ActionParameters, OntologyObservation } from "./ontology";
+import { ActionEdits, ActionParameters, OntologyObservation } from "./ontology";
 import { useMutation, UseMutationResult, UseMutationOptions, useQueryClient } from "@tanstack/react-query";
 import { updateObjectQueries } from "./useObject";
 import { updateObjectsQueries } from "./useObjects";
@@ -9,10 +9,10 @@ import { updateObjectsQueries } from "./useObjects";
 export function useAction<T extends ActionDefinition<any>>(
     type: T,
     mutationOpts?: Omit<
-        UseMutationOptions<OntologyObservation, Error, ActionParameters<T>>,
+        UseMutationOptions<ActionEdits, Error, ActionParameters<T>>,
         "mutationFn" | "mutationKey"
     >
-): UseMutationResult<OntologyObservation, Error, ActionParameters<T>> {
+): UseMutationResult<ActionEdits, Error, ActionParameters<T>> {
     const { client } = useOsdkContext();
     const queryClient = useQueryClient();
     return useMutation({
@@ -41,13 +41,19 @@ export function useAction<T extends ActionDefinition<any>>(
                 modifiedObjectsPromise,
             ]);
             return {
-                knownObjects: [...createdObjects, ...modifiedObjects],
+                createdObjects,
+                modifiedObjects,
                 deletedObjects: result.deletedObjects ?? [],
             };
         },
-        onSuccess: (data) => {
-            updateObjectQueries(queryClient, data);
-            updateObjectsQueries(queryClient, data);
+        onSuccess: (data, variables, context) => {
+            const observation: OntologyObservation = {
+                knownObjects: [...data.createdObjects, ...data.modifiedObjects],
+                deletedObjects: data.deletedObjects,
+            };
+            updateObjectQueries(queryClient, observation);
+            updateObjectsQueries(queryClient, observation);
+            mutationOpts?.onSuccess?.(data, variables, context);
         },
     });
 }
