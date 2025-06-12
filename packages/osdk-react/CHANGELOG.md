@@ -1,5 +1,16 @@
 # @bobbyfidz/osdk-react
 
+## 0.6.0
+
+### Minor Changes
+
+- ddb147c: initial osdk-utils release + fix useAction return types
+
+### Patch Changes
+
+- Updated dependencies [ddb147c]
+    - @bobbyfidz/osdk-utils@0.1.0
+
 ## 0.5.1
 
 ### Patch Changes
