@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.7.2
+
+### Patch Changes
+
+- 7f91d16: fix object edits
+
 ## 0.7.1
 
 ### Patch Changes
