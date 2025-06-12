@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.7.0
+
+### Minor Changes
+
+- fbd8ff5: change query api
+
 ## 0.6.0
 
 ### Minor Changes
