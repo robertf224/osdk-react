@@ -1,17 +1,38 @@
 import { useAction, useObject } from "@bobbyfidz/osdk-react";
-import { Task, deleteTask } from "@gtd/sdk";
+import { Task, deleteTask, editTask } from "@gtd/sdk";
 import { useParams, Link, useNavigate } from "react-router";
+import { useState } from "react";
 
 function TaskPage() {
     const { taskId } = useParams();
     const navigate = useNavigate();
     const { data: task } = useObject(Task, taskId!);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editedTitle, setEditedTitle] = useState("");
 
     const { mutate: applyDeleteTask, isPending: isDeleting } = useAction(deleteTask);
+    const { mutate: applyEditTask, isPending: isEditing } = useAction(editTask);
+
     const handleDelete = () => {
         if (window.confirm("Are you sure you want to delete this task?")) {
             applyDeleteTask({ Task: task! }, { onSuccess: () => navigate("/") });
         }
+    };
+
+    const handleEdit = () => {
+        if (!editedTitle.trim()) return;
+        applyEditTask(
+            {
+                Task: task!,
+                title: editedTitle,
+            },
+            {
+                onSuccess: () => {
+                    setIsEditMode(false);
+                    setEditedTitle("");
+                },
+            }
+        );
     };
 
     if (!task) {
@@ -28,8 +49,47 @@ function TaskPage() {
                     <h1 className="text-2xl font-bold">Task Details</h1>
                 </div>
                 <div className="rounded-lg bg-white p-6 shadow">
-                    <div className="mb-4">
-                        <h2 className="text-xl font-semibold">{task.title}</h2>
+                    <div className="mb-4 flex items-center justify-between">
+                        {isEditMode ? (
+                            <div className="flex flex-1 items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={editedTitle}
+                                    onChange={(e) => setEditedTitle(e.target.value)}
+                                    className="flex-1 rounded border border-gray-300 px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    placeholder="Enter new title"
+                                />
+                                <button
+                                    onClick={handleEdit}
+                                    disabled={isEditing}
+                                    className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600 disabled:opacity-50"
+                                >
+                                    {isEditing ? "Saving..." : "Save"}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditMode(false);
+                                        setEditedTitle("");
+                                    }}
+                                    className="rounded bg-gray-500 px-3 py-1 text-white hover:bg-gray-600"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <h2 className="text-xl font-semibold">{task.title}</h2>
+                                <button
+                                    onClick={() => {
+                                        setIsEditMode(true);
+                                        setEditedTitle(task.title!);
+                                    }}
+                                    className="ml-2 rounded bg-gray-100 px-3 py-1 text-gray-600 hover:bg-gray-200"
+                                >
+                                    Edit
+                                </button>
+                            </>
+                        )}
                     </div>
                     <div className="mb-4">
                         <p className="text-gray-600">

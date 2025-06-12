@@ -38,7 +38,7 @@ export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
 
 export function updateObjectQueries(queryClient: QueryClient, observation: OntologyObservation) {
     observation.knownObjects.forEach((object) => {
-        queryClient.setQueryData([...QUERY_KEY_PREFIX, object.objectType, object.primaryKey], object);
+        queryClient.setQueryData([...QUERY_KEY_PREFIX, object.$objectType, object.$primaryKey], object);
     });
     observation.deletedObjects.forEach((object) => {
         queryClient.setQueryData([...QUERY_KEY_PREFIX, object.objectType, object.primaryKey], null);
