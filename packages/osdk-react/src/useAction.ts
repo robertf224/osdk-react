@@ -1,18 +1,19 @@
-import type { ActionDefinition, ActionEditResponse } from "@osdk/api";
-import { useOsdkContext } from "./OsdkContext";
-import { ActionParameters, OntologyObservation } from "./ontology";
+import { ActionError } from "@bobbyfidz/osdk-utils";
 import { useMutation, UseMutationResult, UseMutationOptions, useQueryClient } from "@tanstack/react-query";
+import { ActionEdits, ActionParameters, OntologyObservation } from "./ontology";
+import { useOsdkContext } from "./OsdkContext";
 import { updateObjectQueries } from "./useObject";
 import { updateObjectsQueries } from "./useObjects";
+import type { ActionDefinition, ActionEditResponse } from "@osdk/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useAction<T extends ActionDefinition<any>>(
     type: T,
     mutationOpts?: Omit<
-        UseMutationOptions<OntologyObservation, Error, ActionParameters<T>>,
+        UseMutationOptions<ActionEdits, ActionError, ActionParameters<T>>,
         "mutationFn" | "mutationKey"
     >
-): UseMutationResult<OntologyObservation, Error, ActionParameters<T>> {
+): UseMutationResult<ActionEdits, ActionError, ActionParameters<T>> {
     const { client } = useOsdkContext();
     const queryClient = useQueryClient();
     return useMutation({
@@ -41,13 +42,19 @@ export function useAction<T extends ActionDefinition<any>>(
                 modifiedObjectsPromise,
             ]);
             return {
-                knownObjects: [...createdObjects, ...modifiedObjects],
+                createdObjects,
+                modifiedObjects,
                 deletedObjects: result.deletedObjects ?? [],
             };
         },
-        onSuccess: (data) => {
-            updateObjectQueries(queryClient, data);
-            updateObjectsQueries(queryClient, data);
+        onSuccess: (data, variables, context) => {
+            const observation: OntologyObservation = {
+                knownObjects: [...data.createdObjects, ...data.modifiedObjects],
+                deletedObjects: data.deletedObjects,
+            };
+            updateObjectQueries(queryClient, observation);
+            updateObjectsQueries(queryClient, observation);
+            mutationOpts?.onSuccess?.(data, variables, context);
         },
     });
 }

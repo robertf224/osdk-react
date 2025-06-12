@@ -1,7 +1,5 @@
 "use client";
 
-import type { Osdk, PrimaryKeyType, ObjectTypeDefinition, WhereClause, ObjectSet } from "@osdk/api";
-import { useOsdkContext } from "./OsdkContext";
 import {
     QueryClient,
     UseSuspenseQueryOptions,
@@ -9,6 +7,8 @@ import {
     useSuspenseQuery,
 } from "@tanstack/react-query";
 import { OntologyObservation } from "./ontology";
+import { useOsdkContext } from "./OsdkContext";
+import type { Osdk, PrimaryKeyType, ObjectTypeDefinition, WhereClause, ObjectSet } from "@osdk/api";
 
 const QUERY_KEY_PREFIX = ["osdk", "object"];
 

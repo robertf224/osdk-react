@@ -1,7 +1,7 @@
+import { Users } from "@osdk/foundry.admin";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { UseSuspenseQueryResult } from "@tanstack/react-query";
 import { useOsdkContext } from "../OsdkContext";
-import { Users } from "@osdk/foundry.admin";
 
 export function useUserProfilePicture(
     userId: string

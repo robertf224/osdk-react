@@ -1,3 +1,4 @@
+import { objectMatchesFilter } from "./objectMatchesFilter";
 import type {
     ObjectOrInterfaceDefinition,
     Osdk,
@@ -6,7 +7,6 @@ import type {
     ObjectTypeDefinition,
 } from "@osdk/api";
 import type { Client } from "@osdk/client";
-import { objectMatchesFilter } from "./objectMatchesFilter";
 
 export interface ObjectSet<T extends ObjectOrInterfaceDefinition> {
     type: T;

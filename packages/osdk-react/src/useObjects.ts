@@ -1,16 +1,18 @@
 "use client";
 
-import type { ObjectOrInterfaceDefinition, Osdk, PageResult, PrimaryKeyType, WhereClause } from "@osdk/api";
-import { useOsdkContext } from "./OsdkContext";
 import {
     InfiniteData,
     QueryClient,
+    useQueryClient,
     useSuspenseInfiniteQuery,
     UseSuspenseInfiniteQueryOptions,
     UseSuspenseInfiniteQueryResult,
 } from "@tanstack/react-query";
 import { ObjectSetOrderBy, OntologyObservation, ObjectSet, ObjectList } from "./ontology";
+import { useOsdkContext } from "./OsdkContext";
+import { updateObjectQueries } from "./useObject";
 import { SortedObjectArray } from "./utils";
+import type { ObjectOrInterfaceDefinition, Osdk, PageResult, PrimaryKeyType, WhereClause } from "@osdk/api";
 
 const QUERY_KEY_PREFIX = ["osdk", "objects"];
 
@@ -44,6 +46,7 @@ export function useObjects<T extends ObjectOrInterfaceDefinition>(
     >,
 ] {
     const { client } = useOsdkContext();
+    const queryClient = useQueryClient();
     const objectList: ObjectList<T> = {
         objectSet: { type, filter: opts.$where },
         orderBy: opts.$orderBy,
@@ -52,11 +55,19 @@ export function useObjects<T extends ObjectOrInterfaceDefinition>(
         ...queryOpts,
         queryFn: ({ pageParam: $nextPageToken }) => {
             const objectSet = ObjectSet.toOSDK(objectList.objectSet, client);
-            return objectSet.fetchPage({
+            const result = objectSet.fetchPage({
                 $orderBy: objectList.orderBy,
                 $pageSize: opts.$pageSize,
                 $nextPageToken,
             });
+            void result.then((page) => {
+                const observation: OntologyObservation = {
+                    knownObjects: page.data,
+                    deletedObjects: [],
+                };
+                updateObjectQueries(queryClient, observation);
+            });
+            return result;
         },
         queryKey: [...QUERY_KEY_PREFIX, objectList],
         initialPageParam: undefined,

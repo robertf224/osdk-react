@@ -1,7 +1,7 @@
 import { Sessions, Contents, SessionExchange } from "@osdk/foundry.aipagents";
-import { useOsdkContext } from "../OsdkContext";
-import React from "react";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import React from "react";
+import { useOsdkContext } from "../OsdkContext";
 
 // WIP
 

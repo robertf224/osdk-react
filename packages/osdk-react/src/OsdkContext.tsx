@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import { Client } from "@osdk/client";
+import React from "react";
 
 export interface OsdkContext {
     client: Client;

@@ -1,27 +1,4 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
-    "compilerOptions": {
-        "outDir": "lib",
-        "rootDir": "src",
-
-        "forceConsistentCasingInFileNames": true,
-        "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true,
-        "esModuleInterop": true,
-        "isolatedModules": true,
-        "noUncheckedIndexedAccess": true,
-        "resolveJsonModule": true,
-        "strict": true,
-        "allowUnreachableCode": false,
-        "incremental": true,
-        "skipLibCheck": true,
-
-        "lib": ["ES2022", "DOM", "DOM.Iterable"],
-        "target": "ES2022",
-        "module": "ESNext",
-        "moduleResolution": "bundler",
-        "jsx": "react"
-    },
-    "include": ["src/**/*.ts", "src/**/*.tsx"]
+    "extends": "@bobbyfidz/react-build-config/tsconfig-base.json"
 }
