@@ -1,7 +1,7 @@
+import { Client } from "@osdk/client";
+import { User, Users } from "@osdk/foundry.admin";
 import { useSuspenseQuery, UseSuspenseQueryResult } from "@tanstack/react-query";
 import { Batcher, create, indexedResolver, windowScheduler } from "@yornaath/batshit";
-import { User, Users } from "@osdk/foundry.admin";
-import { Client } from "@osdk/client";
 import { useOsdkContext } from "../OsdkContext";
 
 type UserLoader = Batcher<Record<string, User>, string, User | null>;

@@ -1,18 +1,19 @@
-import type { ActionDefinition, ActionEditResponse } from "@osdk/api";
-import { useOsdkContext } from "./OsdkContext";
-import { ActionEdits, ActionParameters, OntologyObservation } from "./ontology";
+import { ActionError } from "@bobbyfidz/osdk-utils";
 import { useMutation, UseMutationResult, UseMutationOptions, useQueryClient } from "@tanstack/react-query";
+import { ActionEdits, ActionParameters, OntologyObservation } from "./ontology";
+import { useOsdkContext } from "./OsdkContext";
 import { updateObjectQueries } from "./useObject";
 import { updateObjectsQueries } from "./useObjects";
+import type { ActionDefinition, ActionEditResponse } from "@osdk/api";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useAction<T extends ActionDefinition<any>>(
     type: T,
     mutationOpts?: Omit<
-        UseMutationOptions<ActionEdits, Error, ActionParameters<T>>,
+        UseMutationOptions<ActionEdits, ActionError, ActionParameters<T>>,
         "mutationFn" | "mutationKey"
     >
-): UseMutationResult<ActionEdits, Error, ActionParameters<T>> {
+): UseMutationResult<ActionEdits, ActionError, ActionParameters<T>> {
     const { client } = useOsdkContext();
     const queryClient = useQueryClient();
     return useMutation({

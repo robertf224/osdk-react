@@ -1,12 +1,12 @@
 "use client";
 
-import React from "react";
-import type { ObjectOrInterfaceDefinition, ObjectSet } from "@osdk/api";
 import { useQueryClient } from "@tanstack/react-query";
-import { useOsdkContext } from "./OsdkContext";
-import { updateObjectsQueries } from "./useObjects";
-import { updateObjectQueries } from "./useObject";
+import React from "react";
 import { OntologyObservation } from "./ontology";
+import { useOsdkContext } from "./OsdkContext";
+import { updateObjectQueries } from "./useObject";
+import { updateObjectsQueries } from "./useObjects";
+import type { ObjectOrInterfaceDefinition, ObjectSet } from "@osdk/api";
 
 export type LiveObjectSetState = { status: "connecting" | "connected" | "error"; error?: Error };
 

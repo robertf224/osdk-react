@@ -1,7 +1,5 @@
 "use client";
 
-import type { ObjectOrInterfaceDefinition, Osdk, PageResult, PrimaryKeyType, WhereClause } from "@osdk/api";
-import { useOsdkContext } from "./OsdkContext";
 import {
     InfiniteData,
     QueryClient,
@@ -11,8 +9,10 @@ import {
     UseSuspenseInfiniteQueryResult,
 } from "@tanstack/react-query";
 import { ObjectSetOrderBy, OntologyObservation, ObjectSet, ObjectList } from "./ontology";
-import { SortedObjectArray } from "./utils";
+import { useOsdkContext } from "./OsdkContext";
 import { updateObjectQueries } from "./useObject";
+import { SortedObjectArray } from "./utils";
+import type { ObjectOrInterfaceDefinition, Osdk, PageResult, PrimaryKeyType, WhereClause } from "@osdk/api";
 
 const QUERY_KEY_PREFIX = ["osdk", "objects"];
 

@@ -1,6 +1,6 @@
-import type { FetchPageArgs, ObjectOrInterfaceDefinition, Osdk } from "@osdk/api";
-import { ObjectSet } from "./object-set";
 import { Comparator } from "../utils";
+import { ObjectSet } from "./object-set";
+import type { FetchPageArgs, ObjectOrInterfaceDefinition, Osdk } from "@osdk/api";
 
 // TODO: switch this to an array to preserve order when stringifying.
 export type ObjectSetOrderBy<T extends ObjectOrInterfaceDefinition> = NonNullable<

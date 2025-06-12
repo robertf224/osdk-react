@@ -1,9 +1,9 @@
-import { useAction, useLiveObjectSet, useObjects } from "@bobbyfidz/osdk-react";
+import { useAction, useLiveObjectSet, useObjects, isKnownActionError } from "@bobbyfidz/osdk-react";
 import { createTask, Task } from "@gtd/sdk";
 import React from "react";
 import TaskItem from "./TaskItem";
 import FlipMove from "react-flip-move";
-import ChatWindow from "./ChatWindow";
+// import ChatWindow from "./ChatWindow";
 
 function App() {
     const [tasks, { hasNextPage, isFetchingNextPage, fetchNextPage }] = useObjects(Task, {
@@ -18,7 +18,19 @@ function App() {
     const handleAddTask = () => {
         if (!newTaskTitle.trim()) return;
         // Add the new task with the title
-        addTask({ title: newTaskTitle }, { onSuccess: () => setNewTaskTitle("") });
+        addTask(
+            { title: newTaskTitle },
+            {
+                onSuccess: () => setNewTaskTitle(""),
+                onError: (error) => {
+                    if (isKnownActionError(error)) {
+                        console.error("Known error", error);
+                    } else {
+                        console.error("Unknown error", error);
+                    }
+                },
+            }
+        );
     };
 
     return (
@@ -87,10 +99,10 @@ function App() {
                     </div>
                 )}
             </div>
-            <ChatWindow
+            {/* <ChatWindow
                 agentRid="ri.aip-agents..agent.75e6c53f-7bc8-4e90-85cf-c7705e6d19f4"
                 sessionRid="ri.aip-agents..session.dd23d3a1-c798-4031-9756-b0ec289495e3"
-            />
+            /> */}
         </div>
     );
 }
