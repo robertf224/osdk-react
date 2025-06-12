@@ -6,7 +6,12 @@ import FlipMove from "react-flip-move";
 // import ChatWindow from "./ChatWindow";
 
 function App() {
-    const [tasks, { hasNextPage, isFetchingNextPage, fetchNextPage }] = useObjects(Task, {
+    const {
+        data: tasks,
+        hasNextPage,
+        isFetchingNextPage,
+        fetchNextPage,
+    } = useObjects(Task, {
         $orderBy: { completedAt: "asc", createdAt: "desc" },
         $pageSize: 10,
     });

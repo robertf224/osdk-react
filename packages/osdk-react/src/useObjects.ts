@@ -34,17 +34,12 @@ export function useObjects<T extends ObjectOrInterfaceDefinition>(
         | "getPreviousPageParam"
         | "select"
     >
-): [
-    Osdk<T>[],
-    Omit<
-        UseSuspenseInfiniteQueryResult,
-        | "data"
-        | "fetchPreviousPage"
-        | "isFetchingPreviousPage"
-        | "hasPreviousPage"
-        | "isFetchPreviousPageError"
-    >,
-] {
+): Omit<
+    UseSuspenseInfiniteQueryResult,
+    "data" | "fetchPreviousPage" | "isFetchingPreviousPage" | "hasPreviousPage" | "isFetchPreviousPageError"
+> & {
+    data: Osdk<T>[];
+} {
     const { client } = useOsdkContext();
     const queryClient = useQueryClient();
     const objectList: ObjectList<T> = {
@@ -79,8 +74,7 @@ export function useObjects<T extends ObjectOrInterfaceDefinition>(
         readonly unknown[],
         string | undefined
     >);
-
-    return [data.pages.flatMap((page) => page.data), rest];
+    return { data: data.pages.flatMap((page) => page.data), ...rest };
 }
 
 export function updateObjectsQueries(queryClient: QueryClient, observation: OntologyObservation) {

@@ -3,11 +3,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { UseSuspenseQueryResult } from "@tanstack/react-query";
 import { useOsdkContext } from "../OsdkContext";
 
-export function useUserProfilePicture(
-    userId: string
-): [string | null, Omit<UseSuspenseQueryResult<string | null>, "data">] {
+export function useUserProfilePicture(userId: string): UseSuspenseQueryResult<string | null> {
     const { client } = useOsdkContext();
-    const { data, ...rest } = useSuspenseQuery({
+    return useSuspenseQuery({
         queryFn: async () => {
             const result = await Users.profilePicture(client, userId);
             // Typing is wrong here.
@@ -19,5 +17,4 @@ export function useUserProfilePicture(
         },
         queryKey: ["osdk", "user-profile-picture", userId],
     });
-    return [data, rest];
 }

@@ -6,7 +6,7 @@ export interface UserDisplayProps {
 }
 
 export const UserDisplay: React.FC<UserDisplayProps> = ({ userId }) => {
-    const [user] = useUser(userId);
+    const { data: user } = useUser(userId);
 
     const displayName = user
         ? [user.givenName, user.familyName].filter((name) => name !== undefined).join(" ")
