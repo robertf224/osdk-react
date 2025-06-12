@@ -48,6 +48,6 @@ export function useLiveObjectSet<T extends ObjectOrInterfaceDefinition>(type: T)
             },
         });
         return subscription.unsubscribe;
-    }, [client]);
+    }, [client, queryClient, type]);
     return state;
 }

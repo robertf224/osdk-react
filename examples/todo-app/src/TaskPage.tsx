@@ -5,7 +5,7 @@ import { useParams, Link, useNavigate } from "react-router";
 function TaskPage() {
     const { taskId } = useParams();
     const navigate = useNavigate();
-    const [task] = useObject(Task, taskId!);
+    const { data: task } = useObject(Task, taskId!);
 
     const { mutate: applyDeleteTask, isPending: isDeleting } = useAction(deleteTask);
     const handleDelete = () => {

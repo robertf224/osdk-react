@@ -2,7 +2,7 @@ import { User, useUser, useUserProfilePicture } from "@bobbyfidz/osdk-react/user
 import { Suspense } from "react";
 
 export const UserAvatar: React.FC<{ userId: string }> = ({ userId }) => {
-    const [user] = useUser(userId);
+    const { data: user } = useUser(userId);
     return (
         <Suspense fallback={<UserInitials user={user ?? undefined} />}>
             {user ? <UserProfilePicture user={user} /> : <UserInitials />}
@@ -11,7 +11,7 @@ export const UserAvatar: React.FC<{ userId: string }> = ({ userId }) => {
 };
 
 const UserProfilePicture: React.FC<{ user: User }> = ({ user }) => {
-    const [avatarUrl] = useUserProfilePicture(user.id);
+    const { data: avatarUrl } = useUserProfilePicture(user.id);
     return avatarUrl ? (
         <div className="h-8 w-8 overflow-hidden rounded-full">
             <img

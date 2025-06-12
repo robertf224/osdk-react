@@ -19,9 +19,9 @@ export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
         UseSuspenseQueryOptions<Osdk<T> | null, Error, R>,
         "queryKey" | "queryFn" | "initialData" | "initialDataUpdatedAt"
     >
-): [R, Omit<UseSuspenseQueryResult<R>, "data">] {
+): UseSuspenseQueryResult<R> {
     const { client } = useOsdkContext();
-    const { data, ...rest } = useSuspenseQuery({
+    return useSuspenseQuery({
         ...queryOpts,
         queryFn: async () => {
             const objectType = await client.fetchMetadata(type);
@@ -34,7 +34,6 @@ export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
         },
         queryKey: [...QUERY_KEY_PREFIX, type.apiName, primaryKey],
     });
-    return [data, rest];
 }
 
 export function updateObjectQueries(queryClient: QueryClient, observation: OntologyObservation) {

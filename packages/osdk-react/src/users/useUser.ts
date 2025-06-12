@@ -26,9 +26,9 @@ function getUsersLoader(client: Client): UserLoader {
     return usersLoader;
 }
 
-export function useUser(userId: string): [User | null, Omit<UseSuspenseQueryResult<User | null>, "data">] {
+export function useUser(userId: string): UseSuspenseQueryResult<User | null> {
     const { client } = useOsdkContext();
-    const { data, ...rest } = useSuspenseQuery({
+    return useSuspenseQuery({
         queryFn: async () => {
             const usersLoader = getUsersLoader(client);
             const user = await usersLoader.fetch(userId);
@@ -36,5 +36,4 @@ export function useUser(userId: string): [User | null, Omit<UseSuspenseQueryResu
         },
         queryKey: ["osdk", "user", userId],
     });
-    return [data, rest];
 }
