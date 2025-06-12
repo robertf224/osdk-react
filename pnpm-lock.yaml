@@ -126,9 +126,6 @@ importers:
       '@osdk/foundry.aipagents':
         specifier: ^2.22.0
         version: 2.22.0
-      '@tanstack/react-query':
-        specifier: ^5.80.6
-        version: 5.80.6(react@19.0.0)
       '@yornaath/batshit':
         specifier: ^0.10.1
         version: 0.10.1
@@ -136,6 +133,9 @@ importers:
       '@bobbyfidz/react-build-config':
         specifier: ^0.1.1
         version: 0.1.1(eslint@9.28.0(jiti@2.4.2))(typescript@5.8.3)
+      '@tanstack/react-query':
+        specifier: ^5.80.6
+        version: 5.80.6(react@19.0.0)
       '@types/react':
         specifier: ^19.0.8
         version: 19.0.8
