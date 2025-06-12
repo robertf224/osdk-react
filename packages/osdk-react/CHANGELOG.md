@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.7.1
+
+### Patch Changes
+
+- a99605d: switch react-query to peer dep
+
 ## 0.7.0
 
 ### Minor Changes
