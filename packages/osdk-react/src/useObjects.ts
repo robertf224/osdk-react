@@ -35,9 +35,11 @@ export function useObjects<T extends ObjectOrInterfaceDefinition>(
         | "select"
     >
 ): Omit<
-    UseSuspenseInfiniteQueryResult<Osdk<T>[]>,
-    "fetchPreviousPage" | "isFetchingPreviousPage" | "hasPreviousPage" | "isFetchPreviousPageError"
-> {
+    UseSuspenseInfiniteQueryResult,
+    "data" | "fetchPreviousPage" | "isFetchingPreviousPage" | "hasPreviousPage" | "isFetchPreviousPageError"
+> & {
+    data: Osdk<T>[];
+} {
     const { client } = useOsdkContext();
     const queryClient = useQueryClient();
     const objectList: ObjectList<T> = {
