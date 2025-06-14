@@ -1,5 +1,16 @@
 # @bobbyfidz/osdk-react
 
+## 0.8.0
+
+### Minor Changes
+
+- 087996b: add current user id utils
+
+### Patch Changes
+
+- Updated dependencies [087996b]
+    - @bobbyfidz/osdk-utils@0.2.0
+
 ## 0.7.2
 
 ### Patch Changes
