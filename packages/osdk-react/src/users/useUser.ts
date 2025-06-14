@@ -1,3 +1,5 @@
+"use client";
+
 import { Client } from "@osdk/client";
 import { User, Users } from "@osdk/foundry.admin";
 import { useSuspenseQuery, UseSuspenseQueryResult } from "@tanstack/react-query";
