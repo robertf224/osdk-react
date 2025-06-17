@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.8.1
+
+### Patch Changes
+
+- cb3f1ca: fix isNull filter
+
 ## 0.8.0
 
 ### Minor Changes
