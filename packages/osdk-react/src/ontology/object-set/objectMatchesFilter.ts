@@ -51,7 +51,7 @@ export function objectMatchesFilter<T extends ObjectOrInterfaceDefinition>(
                 case "$in":
                     return (filterValue as Array<unknown>).includes(propertyValue);
                 case "$isNull":
-                    return propertyValue === null;
+                    return propertyValue === null || propertyValue === undefined;
                 case "$startsWith":
                     return (propertyValue as string).startsWith(filterValue as string);
                 // TODO: implement other filters
