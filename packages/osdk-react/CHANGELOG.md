@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.9.0
+
+### Minor Changes
+
+- b63ab02: Add attachments
+
 ## 0.8.1
 
 ### Patch Changes
