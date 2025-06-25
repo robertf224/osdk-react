@@ -17,6 +17,10 @@
         "./ai": {
             "types": "./lib/ai/index.d.ts",
             "default": "./lib/ai/index.js"
+        },
+        "./attachments": {
+            "types": "./lib/attachments/index.d.ts",
+            "default": "./lib/attachments/index.js"
         }
     },
     "scripts": {

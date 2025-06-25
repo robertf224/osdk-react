@@ -9,6 +9,7 @@ export function useCurrentUserId(): string {
     const { data: token } = useSuspenseQuery({
         queryFn: () => client.__osdkClientContext.tokenProvider(),
         queryKey: ["osdk", "current-user-id"],
+        staleTime: Infinity,
     });
     return getUserIdFromToken(token);
 }
