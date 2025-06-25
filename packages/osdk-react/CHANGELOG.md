@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.9.1
+
+### Patch Changes
+
+- 9fe00ef: Move to data urls
+
 ## 0.9.0
 
 ### Minor Changes
