@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.10.0
+
+### Minor Changes
+
+- 2f13284: allow empty pks in useObject
+
 ## 0.9.1
 
 ### Patch Changes
