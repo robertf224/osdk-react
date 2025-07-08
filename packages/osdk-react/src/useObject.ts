@@ -14,7 +14,7 @@ const QUERY_KEY_PREFIX = ["osdk", "object"];
 
 export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
     type: T,
-    primaryKey: PrimaryKeyType<T>,
+    primaryKey: PrimaryKeyType<T> | undefined,
     queryOpts?: Omit<
         UseSuspenseQueryOptions<Osdk<T> | null, Error, R>,
         "queryKey" | "queryFn" | "initialData" | "initialDataUpdatedAt"
@@ -24,6 +24,9 @@ export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
     return useSuspenseQuery({
         ...queryOpts,
         queryFn: async () => {
+            if (primaryKey === undefined) {
+                return null;
+            }
             const objectType = await client.fetchMetadata(type);
             const result = await (client(type) as ObjectSet<T>)
                 .where({
@@ -33,6 +36,7 @@ export function useObject<T extends ObjectTypeDefinition, R = Osdk<T> | null>(
             return result.data[0] ?? null;
         },
         queryKey: [...QUERY_KEY_PREFIX, type.apiName, primaryKey],
+        initialData: primaryKey ? undefined : null,
     });
 }
 
