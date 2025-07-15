@@ -1,4 +1,10 @@
-import { useAction, useLiveObjectSet, useObjects, isKnownActionError } from "@bobbyfidz/osdk-react";
+import {
+    useAction,
+    useLiveObjectSet,
+    useObjects,
+    isKnownActionError,
+    useAggregations,
+} from "@bobbyfidz/osdk-react";
 import { createTask, Task } from "@gtd/sdk";
 import React, { Suspense } from "react";
 import TaskItem from "./TaskItem";
@@ -39,6 +45,14 @@ function App() {
         );
     };
 
+    const {
+        data: { $count: totalTodos },
+    } = useAggregations(Task, {
+        $select: {
+            $count: "unordered",
+        },
+    });
+
     return (
         <div className="min-h-screen bg-gray-100">
             <div className="absolute right-4 top-4">
@@ -48,7 +62,9 @@ function App() {
             </div>
             <div className="p-8">
                 <div className="mx-auto max-w-xl">
-                    <h1 className="mb-6 text-center text-3xl font-bold">Todo App</h1>
+                    <h1 className="mb-6 text-center text-3xl font-bold">
+                        Todos {totalTodos ? `(${totalTodos})` : ""}
+                    </h1>
                     <div className="mb-6 flex">
                         <input
                             type="text"

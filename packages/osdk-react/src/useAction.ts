@@ -5,6 +5,7 @@ import { useOsdkContext } from "./OsdkContext";
 import { updateObjectQueries } from "./useObject";
 import { updateObjectsQueries } from "./useObjects";
 import type { ActionDefinition, ActionEditResponse } from "@osdk/api";
+import { updateAggregationQueries } from "./useAggregations";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useAction<T extends ActionDefinition<any>>(
@@ -54,6 +55,7 @@ export function useAction<T extends ActionDefinition<any>>(
             };
             updateObjectQueries(queryClient, observation);
             updateObjectsQueries(queryClient, observation);
+            updateAggregationQueries(queryClient, observation);
             mutationOpts?.onSuccess?.(data, variables, context);
         },
     });
