@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.11.0
+
+### Minor Changes
+
+- d9d1441: add basic aggregation support
+
 ## 0.10.0
 
 ### Minor Changes
