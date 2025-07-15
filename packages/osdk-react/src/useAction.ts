@@ -2,6 +2,7 @@ import { ActionError } from "@bobbyfidz/osdk-utils";
 import { useMutation, UseMutationResult, UseMutationOptions, useQueryClient } from "@tanstack/react-query";
 import { ActionEdits, ActionParameters, OntologyObservation } from "./ontology";
 import { useOsdkContext } from "./OsdkContext";
+import { updateAggregationQueries } from "./useAggregations";
 import { updateObjectQueries } from "./useObject";
 import { updateObjectsQueries } from "./useObjects";
 import type { ActionDefinition, ActionEditResponse } from "@osdk/api";
@@ -54,6 +55,7 @@ export function useAction<T extends ActionDefinition<any>>(
             };
             updateObjectQueries(queryClient, observation);
             updateObjectsQueries(queryClient, observation);
+            updateAggregationQueries(queryClient, observation);
             mutationOpts?.onSuccess?.(data, variables, context);
         },
     });
