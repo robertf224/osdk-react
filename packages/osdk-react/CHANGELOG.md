@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.12.2
+
+### Patch Changes
+
+- cb48087: allow undefined attachments
+
 ## 0.12.1
 
 ### Patch Changes
