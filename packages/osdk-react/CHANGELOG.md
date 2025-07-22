@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.12.0
+
+### Minor Changes
+
+- 3a6abab: add attachment uploads
+
 ## 0.11.0
 
 ### Minor Changes
