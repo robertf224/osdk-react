@@ -98,7 +98,7 @@ function ImagePreview({ attachment }: { attachment: Attachment }) {
 
 function AttachmentDisplay({ attachment }: { attachment: Attachment }) {
     const { data: metadata } = useAttachmentMetadata(attachment);
-    const isImage = metadata.mediaType.includes("image/");
+    const isImage = metadata?.mediaType.includes("image/");
 
     return (
         <div className="mt-4 rounded-lg bg-gray-50 p-3">
@@ -117,7 +117,7 @@ function AttachmentDisplay({ attachment }: { attachment: Attachment }) {
                             d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                         />
                     </svg>
-                    <span className="text-sm font-medium text-gray-700">{metadata.filename}</span>
+                    <span className="text-sm font-medium text-gray-700">{metadata?.filename}</span>
                 </div>
             </div>
             {isImage && <ImagePreview attachment={attachment} />}
