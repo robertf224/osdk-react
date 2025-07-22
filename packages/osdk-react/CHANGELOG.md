@@ -1,5 +1,11 @@
 # @bobbyfidz/osdk-react
 
+## 0.12.1
+
+### Patch Changes
+
+- aea819b: fix export
+
 ## 0.12.0
 
 ### Minor Changes
