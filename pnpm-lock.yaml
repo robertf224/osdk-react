@@ -126,6 +126,9 @@ importers:
       '@osdk/foundry.aipagents':
         specifier: ^2.22.0
         version: 2.22.0
+      '@osdk/foundry.ontologies':
+        specifier: ^2.22.0
+        version: 2.22.0
       '@yornaath/batshit':
         specifier: ^0.10.1
         version: 0.10.1
